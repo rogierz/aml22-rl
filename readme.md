@@ -22,7 +22,7 @@ On Linux, get started on your local machine by executing `pip install -r require
 
 You can also run the code on [Google Colab](https://colab.research.google.com/)
 
-- Download all files contained in the colab_template folder in this repo.
+- Download all files contained in the `colab_template` folder in this repo.
 - Load the `test_random_policy.ipynb` file on [https://colab.research.google.com/](colab) and follow the instructions on it
 
 NOTE 1: rendering is currently **not** officially supported on Colab, making it hard to see the simulator in action. We recommend that each group manages to play around with the visual interface of the simulator at least once, to best understand what is going on with the Hopper environment.
