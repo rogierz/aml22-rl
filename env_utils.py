@@ -19,7 +19,7 @@ class CustomHopperWrapper(gym.Wrapper):
 
     def set_random_parameters(self):
         """Set random masses"""
-        self.set_parameters(*self.sample_parameters())
+        self.set_parameters(self.sample_parameters())
 
     def sample_parameters(self):
         """Sample masses according to a domain randomization distribution
