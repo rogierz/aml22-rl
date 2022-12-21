@@ -1,4 +1,4 @@
-"""Test a random policy on the Gymnasium Hopper environment
+"""Test a random policy on the Gym Hopper environment
 
 Play around with this code to get familiar with the
 Hopper environment.
@@ -7,18 +7,16 @@ For example, what happens if you don't reset the environment
 even after the episode is over?
 When exactly is the episode over?
 What is an action here?
-
-Useful resources:
-- https://gymnasium.farama.org/
-- https://github.com/Farama-Foundation/Gymnasium/blob/main/gymnasium/envs/mujoco/hopper_v4.py
 """
-from env_utils import *
-
+import gym
+from env.custom_hopper import *
 
 def main():
-    render_mode = 'human'  # set to 'human' for rendering (does not work on Google Colab)
+    render = False
 
-    env = make_env(domain="source", render_mode=render_mode)
+    # env = gym.make('CustomHopper-source-v0')  # [2.53429174 3.92699082 2.71433605 5.0893801 ]
+    # env = gym.make('CustomHopper-target-v0')  # [3.53429174 3.92699082 2.71433605 5.0893801 ] 
+    env = gym.make('CustomHopper-source-v0')
 
     print('State space:', env.observation_space)  # state-space
     print('Action space:', env.action_space)  # action-space
@@ -34,6 +32,14 @@ def main():
             action = env.action_space.sample()  # Sample random action
 
             state, reward, done, info = env.step(action)  # Step the simulator to the next timestep
+
+            """Step 4: vision-based
+            img_state = env.render(mode="rgb_array", width=224, height=224)
+            """
+
+            if render:
+                env.render()
+
 
 if __name__ == '__main__':
     main()

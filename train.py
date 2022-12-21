@@ -3,12 +3,11 @@
     Read the stable-baselines3 documentation and implement a training
     pipeline with an RL algorithm of your choice between TRPO, PPO, and SAC.
 """
-from env_utils import *
+import gym
+from env.custom_hopper import *
 
 def main():
-    render_mode = None  # you do not want to render at training time
-
-    env = make_env(domain="source", render_mode=render_mode)
+    env = gym.make('CustomHopper-source-v0')
 
     print('State space:', env.observation_space)  # state-space
     print('Action space:', env.action_space)  # action-space
@@ -17,8 +16,8 @@ def main():
     """
         TODO:
 
-            - train a policy
-            - test the policy
+            - train a policy with stable-baselines3 on source env
+            - test the policy with stable-baselines3 on <source,target> envs
     """
 
 if __name__ == '__main__':

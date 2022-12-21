@@ -8,14 +8,18 @@ You can play around with the code on your local machine, and use Google Colab fo
 
 Before starting to implement your own code, make sure to:
 1. read and study the material provided
-2. read the documentation of the main packages you will be using ([mujoco](https://github.com/deepmind/mujoco), [gymnasium](https://gymnasium.farama.org/), [stable-baselines3](https://stable-baselines3.readthedocs.io/en/master/index.html))
-3. play around with the code in the template to familiarize with all the tools.
+2. read the documentation of the main packages you will be using ([mujoco-py](https://github.com/openai/mujoco-py), [Gym](https://github.com/openai/gym), [stable-baselines3](https://stable-baselines3.readthedocs.io/en/master/index.html))
+3. play around with the code in the template to familiarize with all the tools. Especially with the `test_random_policy.py` script.
 
 ### 1. Local
 
-You can work on your local machine directly, at least for the first stages of the project. By doing so, you will also be able to render the Mujoco environments and visualize what's happening. This code has been tested on Linux with python 3.7, but [mujoco](https://github.com/deepmind/mujoco) provides prebuilt binaries for Windows and MacOS as well.
+You can work on your local machine directly, at least for the first stages of the project. By doing so, you will also be able to render the Mujoco environments and visualize what's happening. This code has been tested on Linux with python 3.7 (Windows is somewhat deprecated, but may work also).
 
-On Linux, get started on your local machine by executing `pip install -r requirements.txt`. See the official [installation section](https://github.com/deepmind/mujoco#installation) for other operating systems.
+**Dependencies**
+- Install MuJoCo and the Python Mujoco interface following the instructions here: https://github.com/openai/mujoco-py
+- Run `pip install -r requirements.txt` to further install `Gym` and `Stable-baselines3`.
+
+Check your installation by launching `python test_random_policy.py`.
 
 
 ### 2. Google Colab
