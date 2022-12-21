@@ -1,7 +1,7 @@
 # Starting code for course project of Advanced Machine Learning (AML) 2022
 "Sim-to-Real transfer of Reinforcement Learning policies in robotics" exam project.
 
-**Note! This template has changed on Dec 21st, 2023. Make sure to clone the latest version.**
+**Note! This template has changed on Dec 21st, 2022. Make sure to clone the latest version.**
 
 
 ## Getting started
