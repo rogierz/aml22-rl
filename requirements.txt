@@ -1,4 +1,2 @@
-mujoco
-gymnasium
-imageio
+gym
 stable-baselines3[extra]
