@@ -60,13 +60,6 @@ class MujocoEnv(gym.Env):
 
         self.seed()
 
-        # declare parameters
-        self.np_random = None
-        self._viewers = None
-        self.viewer = None
-        self.sim = None
-        self.model = None
-
     def build_model(self):
         self.model = mujoco_py.load_model_from_path(os.path.join(os.path.dirname(__file__), "assets/hopper.xml"))
         self.sim = mujoco_py.MjSim(self.model)
