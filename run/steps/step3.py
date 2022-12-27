@@ -6,7 +6,6 @@ In particular, report results for the following “training→test” configurat
 
 from stable_baselines3 import SAC
 from stable_baselines3.common.callbacks import BaseCallback
-from .summary_callback import SummaryWriterCallback
 from torch.utils.tensorboard import SummaryWriter
 
 from model.env.custom_hopper import *
@@ -26,14 +25,15 @@ def learn_and_test(source='source', target='target', config={}):
     env_target = gym.make(f"CustomHopper-{target}-v0")
 
     model = SAC('MlpPolicy', env_source, verbose=1,
-                tensorboard_log="./sac_tb_step3_log")
-    model.learn(total_timesteps=config.total_timesteps, progress_bar=True,
-                tb_log_name=f"run_{source}_{target}", callback = SummaryWriterCallback())
+                tensorboard_log=f"sac_tb_step3_log")
+    model.learn(total_timesteps=1000, progress_bar=True,
+                tb_log_name=f"run_{source}_{target}")
     n_episodes = 50
 
     run_avg_return = 0
 
-    writer = SummaryWriter()
+    writer = SummaryWriter(log_dir=f"sac_tb_step3_log/run_{source}_{target}")
+    # logger = model.logger
 
     for ep in range(n_episodes):
         done = False
@@ -47,7 +47,7 @@ def learn_and_test(source='source', target='target', config={}):
             n_steps += 1
             episode_return += reward
         
-        writer.add_scalar('episode_return', episode_return, ep)
+        writer.add_scalar(f'episode_return', episode_return, ep)
 
         run_avg_return += episode_return
     

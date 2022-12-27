@@ -17,6 +17,8 @@ def main(args):
         # TODO: cfg parameter
         step3('')
 
+
 if __name__ == '__main__':
+    # TODO: fix paths for tensorboard logs
     argv = sys.argv[1:]
     main(argv)
