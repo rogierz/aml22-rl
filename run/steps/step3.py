@@ -6,7 +6,7 @@ In particular, report results for the following “training→test” configurat
 
 from stable_baselines3 import SAC
 from stable_baselines3.common.callbacks import BaseCallback
-from summary_callback import SummaryWriterCallback
+from .summary_callback import SummaryWriterCallback
 
 from model.env.custom_hopper import *
 import gym
@@ -57,4 +57,4 @@ def main(cfg):
 
 
 if __name__ == "__main__":
-    main()
+    main({})
