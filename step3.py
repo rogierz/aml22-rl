@@ -9,17 +9,23 @@ from stable_baselines3.common.callbacks import BaseCallback
 
 from env.custom_hopper import *
 import gym
+import hydra
 
 
-def learn_and_test(source='source', target='target'):
-    assert source == 'source' or source == 'target'
-    assert target == 'source' or target == 'target'
+def learn_and_test(source='source', target='target', config={}):
+    if source != 'source' and source != 'target':
+        raise ValueError(
+            f"Expected values: [source|target]. Received values: {source}, {target}")
+    if target != 'source' and target != 'target':
+        raise ValueError(
+            f"Expected values: [source|target]. Received values: {source}, {target}")
+
     env_source = gym.make(f"CustomHopper-{source}-v0")
     env_target = gym.make(f"CustomHopper-{target}-v0")
 
     model = SAC('MlpPolicy', env_source, verbose=1,
                 tensorboard_log="./sac_tb_step3_log")
-    model.learn(total_timesteps=10_000, progress_bar=True,
+    model.learn(total_timesteps=config.total_timesteps, progress_bar=True,
                 tb_log_name=f"run_{source}_{target}")
     n_episodes = 50
 
@@ -28,16 +34,15 @@ def learn_and_test(source='source', target='target'):
         done = False
         n_steps = 0
         obs = env_target.reset()
-        episode_avg_return = 0
+        episode_return = 0
 
         while not done:  # Until the episode is over
             action, _ = model.predict(obs, deterministic=True)
             obs, reward, done, info = env_target.step(action)
             n_steps += 1
-            episode_avg_return += reward
+            episode_return += reward
 
-        episode_avg_return /= n_steps
-        run_avg_return += episode_avg_return
+        run_avg_return += episode_return
 
     run_avg_return /= n_episodes
     print(f"--- S: {source} | T: {target} ---")
@@ -45,7 +50,8 @@ def learn_and_test(source='source', target='target'):
     print("---------------------------------")
 
 
-def main():
+@
+def main(cfg):
     for source, target in [('source', 'source'), ('source', 'target'), ('target', 'target')]:
         learn_and_test(source, target)
 
