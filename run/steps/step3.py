@@ -6,6 +6,7 @@ In particular, report results for the following “training→test” configurat
 
 from stable_baselines3 import SAC
 from stable_baselines3.common.callbacks import BaseCallback
+from summary_callback import SummaryWriterCallback
 
 from model.env.custom_hopper import *
 import gym
@@ -26,7 +27,7 @@ def learn_and_test(source='source', target='target', config={}):
     model = SAC('MlpPolicy', env_source, verbose=1,
                 tensorboard_log="./sac_tb_step3_log")
     model.learn(total_timesteps=config.total_timesteps, progress_bar=True,
-                tb_log_name=f"run_{source}_{target}")
+                tb_log_name=f"run_{source}_{target}", callback = SummaryWriterCallback())
     n_episodes = 50
 
     run_avg_return = 0
