@@ -21,7 +21,8 @@ class SummaryWriterCallback(BaseCallback):
         if self.n_calls % self._log_freq == 0:
             # You can have access to info from the env using self.locals.
             # for instance, when using one env (index 0 of locals["infos"]):
-            episode_return = self.locals["infos"][0]["episode_return"]
+            # episode_return = self.locals["infos"][0]["episode_return"]
+            
             # self.tb_formatter.writer.add_scalar("train/lap_count", lap_count, self.num_timesteps)
             
             var+=1

@@ -7,6 +7,7 @@ In particular, report results for the following “training→test” configurat
 from stable_baselines3 import SAC
 from stable_baselines3.common.callbacks import BaseCallback
 from .summary_callback import SummaryWriterCallback
+from torch.utils.tensorboard import SummaryWriter
 
 from model.env.custom_hopper import *
 import gym
@@ -31,6 +32,9 @@ def learn_and_test(source='source', target='target', config={}):
     n_episodes = 50
 
     run_avg_return = 0
+
+    writer = SummaryWriter()
+
     for ep in range(n_episodes):
         done = False
         n_steps = 0
@@ -42,9 +46,12 @@ def learn_and_test(source='source', target='target', config={}):
             obs, reward, done, info = env_target.step(action)
             n_steps += 1
             episode_return += reward
+        
+        writer.add_scalar('episode_return', episode_return, ep)
 
         run_avg_return += episode_return
-
+    
+    writer.close()
     run_avg_return /= n_episodes
     print(f"--- S: {source} | T: {target} ---")
     print(f"run_avg_return: {run_avg_return}")
