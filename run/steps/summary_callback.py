@@ -4,6 +4,9 @@ from stable_baselines3.common.logger import TensorBoardOutputFormat
 
 
 class SummaryWriterCallback(BaseCallback):
+    def __init__(self) -> None:
+        super().__init__()
+        var = 0
 
     def _on_training_start(self):
         self._log_freq = 1000  # log every 1000 calls
@@ -20,7 +23,11 @@ class SummaryWriterCallback(BaseCallback):
             # for instance, when using one env (index 0 of locals["infos"]):
             episode_return = self.locals["infos"][0]["episode_return"]
             # self.tb_formatter.writer.add_scalar("train/lap_count", lap_count, self.num_timesteps)
+            
+            var+=1
 
             self.tb_formatter.writer.add_text(
-                "direct_access", "this is a value", self.episode_return)
+                "direct_access", "this is a value", episode_return)
+            self.tb_formatter.writer.add_text(
+                "ehi ehi", "bns", var)
             self.tb_formatter.writer.flush()

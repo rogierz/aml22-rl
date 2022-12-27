@@ -17,7 +17,6 @@ def main(args):
         # TODO: cfg parameter
         step3('')
 
-
 if __name__ == '__main__':
     argv = sys.argv[1:]
     main(argv)
