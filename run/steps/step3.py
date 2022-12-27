@@ -7,7 +7,7 @@ In particular, report results for the following “training→test” configurat
 from stable_baselines3 import SAC
 from stable_baselines3.common.callbacks import BaseCallback
 
-from env.custom_hopper import *
+from model.env.custom_hopper import *
 import gym
 import hydra
 
@@ -50,7 +50,6 @@ def learn_and_test(source='source', target='target', config={}):
     print("---------------------------------")
 
 
-@
 def main(cfg):
     for source, target in [('source', 'source'), ('source', 'target'), ('target', 'target')]:
         learn_and_test(source, target)

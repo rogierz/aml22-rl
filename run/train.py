@@ -4,7 +4,8 @@
     pipeline with an RL algorithm of your choice between TRPO, PPO, and SAC.
 """
 import gym
-from env.custom_hopper import *
+from model.env.custom_hopper import *
+
 
 def main():
     env = gym.make('CustomHopper-source-v0')
@@ -19,6 +20,7 @@ def main():
             - train a policy with stable-baselines3 on source env
             - test the policy with stable-baselines3 on <source,target> envs
     """
+
 
 if __name__ == '__main__':
     main()

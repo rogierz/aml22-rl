@@ -9,7 +9,8 @@ When exactly is the episode over?
 What is an action here?
 """
 import gym
-from env.custom_hopper import *
+from model.env.custom_hopper import *
+
 
 def main():
     render = False

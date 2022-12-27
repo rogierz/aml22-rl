@@ -5,7 +5,7 @@ TRPO [8], PPO [9] and SAC [7].
 """
 
 from stable_baselines3 import SAC
-from env.custom_hopper import *
+from model.env.custom_hopper import *
 import gym
 
 
