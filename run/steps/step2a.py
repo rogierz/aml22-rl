@@ -7,13 +7,21 @@ TRPO [8], PPO [9] and SAC [7].
 from stable_baselines3 import SAC
 from model.env.custom_hopper import *
 import gym
+import os
 
 
-def main():
+def main(base_prefix=''):
+    logdir = f"{base_prefix}/sac_tb_step2a_log"
+
+    try:
+        os.system(f"rm -rf {logdir}")
+    except Exception as e:
+        print(e)
+
     env = gym.make('CustomHopper-source-v0')
 
     model = SAC('MlpPolicy', env, verbose=1,
-                tensorboard_log="./sac_tb_step2a_log")
+                tensorboard_log=logdir)
     model.learn(total_timesteps=10_000, progress_bar=True, tb_log_name="run")
 
     vec_env = model.get_env()
