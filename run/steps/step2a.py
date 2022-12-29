@@ -22,7 +22,7 @@ def main(base_prefix=''):
 
     model = SAC('MlpPolicy', env, verbose=1,
                 tensorboard_log=logdir)
-    model.learn(total_timesteps=10_000, progress_bar=True, tb_log_name="run")
+    model.learn(total_timesteps=1000, progress_bar=True, tb_log_name="run")
 
     vec_env = model.get_env()
     n_episodes = 50

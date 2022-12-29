@@ -1,6 +1,7 @@
+torch
 gym==0.21
 stable-baselines3[extra]
 scipy
 tensorboard
-hydra
 numpy
+optuna
