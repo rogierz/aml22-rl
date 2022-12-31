@@ -7,14 +7,14 @@ TRPO [8], PPO [9] and SAC [7].
 from stable_baselines3 import SAC
 from model.env.custom_hopper import *
 import gym
-import os
+import shutil
 
 
-def main(base_prefix=''):
+def main(params={}, base_prefix='.'):
     logdir = f"{base_prefix}/sac_tb_step2a_log"
 
     try:
-        os.system(f"rm -rf {logdir}")
+        shutil.rmtree(logdir)
     except Exception as e:
         print(e)
 
