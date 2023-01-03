@@ -39,20 +39,29 @@ def sample_sac_params(trial, n=None):
 
 def objective_fn(trial, logdir='.', n=None):
     params = sample_sac_params(trial, n=n)
-    sac_params = {k: v for k, v in params if k != "total_timesteps"}
+
+    # SAC kwargs
+    sac_params = params.copy()
+    del sac_params['total_timesteps']
 
     src_trg_avg_return = 0
     params_metric = {}
-    with SummaryWriter(log_dir=f"{logdir}/run_trial_{trial.number}") as writer:
-
+    with SummaryWriter(log_dir=f"{logdir}/trial_{trial.number}") as writer:
+        last_trained_env = None
+        # Test on target
         for source, target in [('source', 'source'), ('source', 'target'), ('target', 'target')]:
             env_source = gym.make(f"CustomHopper-{source}-v0")
             env_target = gym.make(f"CustomHopper-{target}-v0")
-            model = SAC('MlpPolicy', env_source, **sac_params,
-                        tensorboard_log=f"{logdir}/run_trial_{trial.number}")
 
-            model.learn(total_timesteps=params["total_timesteps"], progress_bar=True,
-                        tb_log_name=f"SAC_{source}_{target}")
+            if last_trained_env != source:
+                # if we aren't in ('source', 'target') we retrain on target env
+                model = SAC('MlpPolicy', env_source, **sac_params,
+                            tensorboard_log=f"{logdir}/trial_{trial.number}")
+
+                model.learn(total_timesteps=params["total_timesteps"], progress_bar=True,
+                            tb_log_name=f"SAC_{source}_{target}")
+
+                last_trained_env = source
 
             n_episodes = 50
             run_avg_return = 0
