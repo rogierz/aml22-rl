@@ -27,30 +27,31 @@ def sample_sac_params(trial, n=None):
     lr = trial.suggest_float("learning_rate", 1e-5, 1e-1, log=True)
     batch_size_exp = trial.suggest_int("batch_size_exp", 7, 10)
     batch_size = 2**batch_size_exp
+    total_timesteps = trial.suggest_int("total_timesteps", 1e4, 1e5, log=True)
 
     return {
         "learning_rate": lr,
         "gamma": gamma,
         "batch_size": batch_size,
-        "total_timesteps": 100_000
+        "total_timesteps": total_timesteps
     }
 
 
 def objective_fn(trial, logdir='.', n=None):
     params = sample_sac_params(trial, n=n)
-    total_timesteps = params["total_timesteps"]
-    del params["total_timesteps"]
+    sac_params = {k: v for k, v in params if k != "total_timesteps"}
 
-    src_src_avg_return = 0
+    src_trg_avg_return = 0
     params_metric = {}
     with SummaryWriter(log_dir=f"{logdir}/run_trial_{trial.number}") as writer:
+
         for source, target in [('source', 'source'), ('source', 'target'), ('target', 'target')]:
             env_source = gym.make(f"CustomHopper-{source}-v0")
             env_target = gym.make(f"CustomHopper-{target}-v0")
-            model = SAC('MlpPolicy', env_source, **params,
+            model = SAC('MlpPolicy', env_source, **sac_params,
                         tensorboard_log=f"{logdir}/run_trial_{trial.number}")
 
-            model.learn(total_timesteps=total_timesteps, progress_bar=True,
+            model.learn(total_timesteps=params["total_timesteps"], progress_bar=True,
                         tb_log_name=f"SAC_{source}_{target}")
 
             n_episodes = 50
@@ -73,12 +74,12 @@ def objective_fn(trial, logdir='.', n=None):
             run_avg_return /= n_episodes
 
             params_metric[f"{source}_{target}/avg_return"] = run_avg_return
-            if source == 'source' and target == 'source':
-                src_src_avg_return = run_avg_return
+            if source == 'source' and target == 'target':
+                src_trg_avg_return = run_avg_return
 
         writer.add_hparams(params, params_metric)
 
-    return src_src_avg_return
+    return src_trg_avg_return
 
 
 def main(params, base_prefix='.'):
@@ -90,7 +91,7 @@ def main(params, base_prefix='.'):
         print(e)
 
     study = optuna.create_study(
-        sampler=optuna.samplers.TPESampler(), direction="maximize")
+        sampler=optuna.samplers.TPESampler(), direction="maximize", study_name="Our awesome study")
 
     objective = partial(objective_fn, logdir=logdir, n=params.n)
     study.optimize(objective, n_trials=10)
