@@ -48,18 +48,19 @@ def objective_fn(trial, logdir='.', n=None):
     params_metric = {}
     with SummaryWriter(log_dir=f"{logdir}/trial_{trial.number}") as writer:
         last_trained_env = None
-        # Test on target
+
         for source, target in [('source', 'source'), ('source', 'target'), ('target', 'target')]:
             env_source = gym.make(f"CustomHopper-{source}-v0")
             env_target = gym.make(f"CustomHopper-{target}-v0")
 
+            # We only want to train in source and target once for each env
             if last_trained_env != source:
                 # if we aren't in ('source', 'target') we retrain on target env
                 model = SAC('MlpPolicy', env_source, **sac_params,
                             tensorboard_log=f"{logdir}/trial_{trial.number}")
 
                 model.learn(total_timesteps=params["total_timesteps"], progress_bar=True,
-                            tb_log_name=f"SAC_{source}_{target}")
+                            tb_log_name=f"SAC_training_{source}")
 
                 last_trained_env = source
 
