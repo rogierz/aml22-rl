@@ -104,7 +104,7 @@ def main(params, base_prefix='.'):
         sampler=optuna.samplers.TPESampler(), direction="maximize", study_name="Our awesome study")
 
     objective = partial(objective_fn, logdir=logdir, n=params.n)
-    study.optimize(objective, n_trials=10)
+    study.optimize(objective, n_trials=params.t)
 
 
 if __name__ == "__main__":
