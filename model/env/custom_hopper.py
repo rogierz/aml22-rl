@@ -16,7 +16,8 @@ BODY_PARTS = {'torso': 1, 'thigh': 2, 'leg': 3, 'foot': 4}
 
 
 class CustomHopper(MujocoEnv, utils.EzPickle):
-    def __init__(self, domain=None):
+    def __init__(self, domain=None, randomize=False, uniform_ratio=0.5):
+        self.randomize = randomize
         MujocoEnv.__init__(self, 4)
         utils.EzPickle.__init__(self)
 
@@ -25,18 +26,16 @@ class CustomHopper(MujocoEnv, utils.EzPickle):
         if domain == 'source':  # Source environment has an imprecise torso mass (1kg shift)
             self.sim.model.body_mass[1] -= 1.0
 
-        uniform_ratio = 0.5
         self.n_episodes = 0
+        np.random.seed(42)
 
         thigh_mass = self.sim.model.body_mass[BODY_PARTS['thigh']]
         leg_mass = self.sim.model.body_mass[BODY_PARTS['leg']]
         foot_mass = self.sim.model.body_mass[BODY_PARTS['foot']]
 
-        np.seed(42)
-
-        self.distributions = {'thigh': Uniform((1-uniform_ratio)*thigh_mass, (1+uniform_ratio)*thigh_mass),
-                              'leg': Uniform((1-uniform_ratio)*leg_mass, (1+uniform_ratio)*leg_mass),
-                              'foot': Uniform((1-uniform_ratio)*foot_mass, (1+uniform_ratio)*foot_mass)}
+        self.distributions = {'thigh': Uniform((1 - uniform_ratio) * thigh_mass, (1 + uniform_ratio) * thigh_mass),
+                              'leg': Uniform((1 - uniform_ratio) * leg_mass, (1 + uniform_ratio) * leg_mass),
+                              'foot': Uniform((1 - uniform_ratio) * foot_mass, (1 + uniform_ratio) * foot_mass)}
 
     def set_random_parameters(self):
         """Set random masses
@@ -61,6 +60,7 @@ class CustomHopper(MujocoEnv, utils.EzPickle):
 
     def set_parameters(self, task):
         """Set each hopper link's mass to a new value"""
+        print(task)
         self.sim.model.body_mass[1:] = task
 
     def step(self, a):
@@ -82,7 +82,7 @@ class CustomHopper(MujocoEnv, utils.EzPickle):
         done = not (np.isfinite(s).all() and (np.abs(s[2:]) < 100).all() and (height > .7) and (abs(ang) < .2))
         ob = self._get_obs()
 
-        if done:
+        if self.randomize and done:
             self.n_episodes += 1
             print(self.n_episodes)
             self.set_random_parameters()
@@ -124,6 +124,15 @@ gym.envs.register(
         entry_point="%s:CustomHopper" % __name__,
         max_episode_steps=500,
         kwargs={"domain": "source"}
+)
+
+gym.envs.register(
+        id="CustomHopper-UDR-source-v0",
+        entry_point="%s:CustomHopper" % __name__,
+        max_episode_steps=500,
+        kwargs={"domain": "source",
+                "randomize": True,
+                "uniform_ratio": 0.5}
 )
 
 gym.envs.register(
