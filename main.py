@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from src.utils.parser import parser
 from pprint import pprint
 from src.steps.step2a import main as step2a
