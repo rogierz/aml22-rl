@@ -8,7 +8,11 @@ import numpy as np
 import gym
 from gym import utils
 from .mujoco_env import MujocoEnv
+from torch.distributions.uniform import Uniform
 from scipy.stats import truncnorm
+
+
+BODY_PARTS = {'torso': 1, 'thigh': 2, 'leg': 3, 'foot': 4}
 
 
 class CustomHopper(MujocoEnv, utils.EzPickle):
@@ -21,21 +25,38 @@ class CustomHopper(MujocoEnv, utils.EzPickle):
         if domain == 'source':  # Source environment has an imprecise torso mass (1kg shift)
             self.sim.model.body_mass[1] -= 1.0
 
+        uniform_ratio = 0.5
+        self.n_episodes = 0
+
+        thigh_mass = self.sim.model.body_mass[BODY_PARTS['thigh']]
+        leg_mass = self.sim.model.body_mass[BODY_PARTS['leg']]
+        foot_mass = self.sim.model.body_mass[BODY_PARTS['foot']]
+
+        np.seed(42)
+
+        self.distributions = {'thigh': Uniform((1-uniform_ratio)*thigh_mass, (1+uniform_ratio)*thigh_mass),
+                              'leg': Uniform((1-uniform_ratio)*leg_mass, (1+uniform_ratio)*leg_mass),
+                              'foot': Uniform((1-uniform_ratio)*foot_mass, (1+uniform_ratio)*foot_mass)}
+
     def set_random_parameters(self):
         """Set random masses
         TODO
         """
-        self.set_parameters(*self.sample_parameters())
+        self.set_parameters(self.sample_parameters())
 
     def sample_parameters(self):
         """Sample masses according to a domain randomization distribution
-        TODO
         """
-        return
+        torso_mass = self.sim.model.body_mass[BODY_PARTS['torso']]
+        thigh_mass = self.distributions['thigh'].sample()
+        leg_mass = self.distributions['leg'].sample()
+        foot_mass = self.distributions['foot'].sample()
+
+        return np.array([torso_mass, thigh_mass, leg_mass, foot_mass])
 
     def get_parameters(self):
         """Get value of mass for each link"""
-        masses = np.array( self.sim.model.body_mass[1:] )
+        masses = np.array(self.sim.model.body_mass[1:])
         return masses
 
     def set_parameters(self, task):
@@ -60,6 +81,11 @@ class CustomHopper(MujocoEnv, utils.EzPickle):
         s = self.state_vector()
         done = not (np.isfinite(s).all() and (np.abs(s[2:]) < 100).all() and (height > .7) and (abs(ang) < .2))
         ob = self._get_obs()
+
+        if done:
+            self.n_episodes += 1
+            print(self.n_episodes)
+            self.set_random_parameters()
 
         return ob, reward, done, {}
 
