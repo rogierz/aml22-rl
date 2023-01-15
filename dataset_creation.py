@@ -14,7 +14,6 @@ def main():
         model.learn(total_timesteps = 10_000)
         model.save(os.path.join("model", "data_model"))
     else:
-        print("carico il model sullo scooter")
         model = SAC.load(os.path.join("model", "data_model.zip"))
     
     
@@ -29,18 +28,15 @@ def main():
             action, _ = model.predict(state, deterministic=True)  # Sample random action
             state, _, done, _ = env.step(action)  # Step the simulator to the next timestep
 
-            print("amo uno state")
             if ((i+1) % 10 == 0): #save on csv
                 
                 img_state = env.render(mode="rgb_array", width=224, height=224)
                 name_img = os.path.join(base_prefix, f"hopper-{n_images}.jpeg")
                 Image.fromarray(img_state).save(name_img)
-                print("amo questa immagine del lungomare di mergellina")
                 dataset_writer.writerow([name_img, *state])
                 n_images += 1
             
             if done:
-                print("amo mi so scoppiati i botti in mano")
                 state = env.reset()
 
 if __name__ == "__main__":
