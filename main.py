@@ -16,6 +16,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     pprint(args)
     step = STEPS[args.step]
-
+    
     # execute step
     step(args)
