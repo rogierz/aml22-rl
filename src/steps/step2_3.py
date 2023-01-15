@@ -93,7 +93,7 @@ def objective_fn(trial, logdir='.', n=None):
 
 
 def main(params, base_prefix='.'):
-    logdir = f"{base_prefix}/sac_tb_step3_log"
+    logdir = f"{base_prefix}/sac_tb_step2_3_log"
 
     try:
         shutil.rmtree(logdir)

@@ -11,7 +11,7 @@ import shutil
 
 
 def main(params={}, base_prefix='.'):
-    logdir = f"{base_prefix}/sac_tb_step2a_log"
+    logdir = f"{base_prefix}/sac_tb_step2_2_log"
 
     try:
         shutil.rmtree(logdir)
