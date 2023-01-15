@@ -133,4 +133,5 @@ dmypy.json
 .vscode/
 
 # Exclude logs
-run/logs
+/logs
+/old/
