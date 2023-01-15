@@ -33,9 +33,12 @@ class CustomHopper(MujocoEnv, utils.EzPickle):
         leg_mass = self.sim.model.body_mass[BODY_PARTS['leg']]
         foot_mass = self.sim.model.body_mass[BODY_PARTS['foot']]
 
-        self.distributions = {'thigh': Uniform((1 - uniform_ratio) * thigh_mass, (1 + uniform_ratio) * thigh_mass),
-                              'leg': Uniform((1 - uniform_ratio) * leg_mass, (1 + uniform_ratio) * leg_mass),
-                              'foot': Uniform((1 - uniform_ratio) * foot_mass, (1 + uniform_ratio) * foot_mass)}
+        # self.distributions = {'thigh': Uniform((1 - uniform_ratio) * thigh_mass, (1 + uniform_ratio) * thigh_mass),
+        #                       'leg': Uniform((1 - uniform_ratio) * leg_mass, (1 + uniform_ratio) * leg_mass),
+        #                       'foot': Uniform((1 - uniform_ratio) * foot_mass, (1 + uniform_ratio) * foot_mass)}
+        self.distributions = {'thigh': Uniform(thigh_mass - 0.5, thigh_mass + 0.5),
+                              'leg': Uniform(leg_mass - 0.5, leg_mass + 0.5),
+                              'foot': Uniform(foot_mass - 0.5, foot_mass + 0.5)}
 
     def set_random_parameters(self):
         """Set random masses
@@ -84,7 +87,7 @@ class CustomHopper(MujocoEnv, utils.EzPickle):
 
         if self.randomize and done:
             self.n_episodes += 1
-            print(self.n_episodes)
+            print(f"\nCurrent episode: {self.n_episodes}")
             self.set_random_parameters()
 
         return ob, reward, done, {}
