@@ -17,20 +17,21 @@ def main(params={}, base_prefix='.'):
     sac_params = {
         "learning_rate": 2e-3,
         "gamma": 0.99,
-        "batch_size": 512
+        "batch_size": 128  # 512
     }
 
-    total_timesteps = int(1e6)
+    total_timesteps = int(1e7)
+    total_episodes = int(1e3)
 
     env_source_UDR = gym.make(f"CustomHopper-UDR-source-v0")
     env_source = gym.make(f"CustomHopper-source-v0")
     env_target = gym.make(f"CustomHopper-target-v0")
 
-    # callback_max_episodes = StopTrainingOnMaxEpisodes(max_episodes=100_000, verbose=1)
+    callback_max_episodes = StopTrainingOnMaxEpisodes(max_episodes=total_episodes, verbose=1)
 
     model = SAC('MlpPolicy', env_source_UDR, **sac_params, verbose=1, seed=42, tensorboard_log=logdir)
 
-    model.learn(total_timesteps=total_timesteps, progress_bar=True, tb_log_name="run")  # , callback=callback_max_episodes)
+    model.learn(total_timesteps=total_timesteps, progress_bar=True, tb_log_name="run", callback=callback_max_episodes)
 
     for i, env in enumerate([env_source, env_target]):
         n_episodes = 50
@@ -54,4 +55,4 @@ def main(params={}, base_prefix='.'):
 
 
 if __name__ == '__main__':
-    main()
+    main(base_prefix='logs')

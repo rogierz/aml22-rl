@@ -36,13 +36,12 @@ class CustomHopper(MujocoEnv, utils.EzPickle):
         # self.distributions = {'thigh': Uniform((1 - uniform_ratio) * thigh_mass, (1 + uniform_ratio) * thigh_mass),
         #                       'leg': Uniform((1 - uniform_ratio) * leg_mass, (1 + uniform_ratio) * leg_mass),
         #                       'foot': Uniform((1 - uniform_ratio) * foot_mass, (1 + uniform_ratio) * foot_mass)}
-        self.distributions = {'thigh': Uniform(thigh_mass - 0.5, thigh_mass + 0.5),
-                              'leg': Uniform(leg_mass - 0.5, leg_mass + 0.5),
-                              'foot': Uniform(foot_mass - 0.5, foot_mass + 0.5)}
+        self.distributions = {'thigh': Uniform(0.5, 5),
+                              'leg': Uniform(0.5, 5),
+                              'foot': Uniform(0.5, 5)}
 
     def set_random_parameters(self):
         """Set random masses
-        TODO
         """
         self.set_parameters(self.sample_parameters())
 
