@@ -18,4 +18,4 @@ if __name__ == '__main__':
     step = STEPS[args.step]
     
     # execute step
-    step(args)
+    step(args.base_prefix)

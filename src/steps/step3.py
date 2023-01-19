@@ -6,7 +6,7 @@ from stable_baselines3.common.callbacks import BaseCallback, StopTrainingOnMaxEp
 from model.env.custom_hopper import *
 
 
-def main(params={}, base_prefix='.'):
+def main(base_prefix='.'):
     logdir = f"{base_prefix}/sac_tb_step3_log"
 
     try:
