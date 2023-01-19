@@ -5,6 +5,8 @@ In particular, report results for the following “training→test” configurat
 """
 from functools import partial
 import os
+from typing import Callable
+
 import optuna
 import gym
 from model.env.custom_hopper import *
@@ -13,36 +15,49 @@ from stable_baselines3 import SAC
 import shutil
 
 
-def sample_sac_params(trial, n=None):
-    GAMMA_MIN = 0.01
-    GAMMA_MAX = 0.99
-    gamma_l = GAMMA_MIN
-    gamma_r = GAMMA_MAX
+def constant_schedule(initial_value: float) -> Callable[[float], float]:
+    """
+    Wrapper for no LR schedule
+    """
+    def func(progress_remaining: float) -> float:
+        return initial_value
 
-    if n > 0:
-        gamma_l = GAMMA_MIN + (GAMMA_MAX - GAMMA_MIN) * (n-1)/3
-        gamma_r = GAMMA_MIN + (GAMMA_MAX - GAMMA_MIN) * (n)/3
+    return func
 
-    gamma = trial.suggest_float("gamma", gamma_l, gamma_r)
-    lr = trial.suggest_float("learning_rate", 1e-5, 1e-1, log=True)
-    batch_size_exp = trial.suggest_int("batch_size_exp", 7, 10)
-    batch_size = 2**batch_size_exp
-    total_timesteps = trial.suggest_int("total_timesteps", 1e4, 1e5, log=True)
+
+def linear_schedule(initial_value: float) -> Callable[[float], float]:
+    """
+    Wrapper for no LR schedule
+    """
+    def func(progress_remaining: float) -> float:
+        return initial_value * progress_remaining
+
+    return func
+
+
+LR_SCHEDULES = {"constant": constant_schedule, "linear": linear_schedule}
+
+
+def sample_sac_params(trial):
+    gamma = trial.suggest_float("gamma", 0.9, 0.99)
+    lr = trial.suggest_float("learning_rate", 1e-3, 5e-3)
+    batch_size = trial.suggest_int("batch_size", 128, 512)
+    lr_schedule = trial.suggest_categorical("lr_schedule", ["constant", "linear"])
 
     return {
         "learning_rate": lr,
         "gamma": gamma,
         "batch_size": batch_size,
-        "total_timesteps": total_timesteps
+        "lr_schedule": lr_schedule
     }
 
 
-def objective_fn(trial, logdir='.', n=None):
-    params = sample_sac_params(trial, n=n)
-
-    # SAC kwargs
-    sac_params = params.copy()
-    del sac_params['total_timesteps']
+def objective_fn(trial, logdir='.'):
+    params = sample_sac_params(trial)
+    lr = params['learning_rate']
+    gamma = params['gamma']
+    batch_size = params['batch_size']
+    lr_schedule = LR_SCHEDULES[params['lr_schedule']]
 
     src_trg_avg_return = 0
     params_metric = {}
@@ -56,10 +71,10 @@ def objective_fn(trial, logdir='.', n=None):
             # We only want to train in source and target once for each env
             if last_trained_env != source:
                 # if we aren't in ('source', 'target') we retrain on target env
-                model = SAC('MlpPolicy', env_source, **sac_params,
+                model = SAC('MlpPolicy', env_source, learning_rate=lr_schedule(lr), batch_size=batch_size, gamma=gamma,
                             tensorboard_log=f"{logdir}/trial_{trial.number}")
 
-                model.learn(total_timesteps=params["total_timesteps"], progress_bar=True,
+                model.learn(total_timesteps=50_000, progress_bar=True,
                             tb_log_name=f"SAC_training_{source}")
 
                 last_trained_env = source
@@ -92,7 +107,7 @@ def objective_fn(trial, logdir='.', n=None):
     return src_trg_avg_return
 
 
-def main(params, base_prefix='.'):
+def main(base_prefix='.'):
     logdir = f"{base_prefix}/sac_tb_step2_3_log"
 
     try:
@@ -100,12 +115,19 @@ def main(params, base_prefix='.'):
     except Exception as e:
         print(e)
 
-    study = optuna.create_study(
-        sampler=optuna.samplers.TPESampler(), direction="maximize", study_name="Our awesome study")
+    search_space = {
+        "gamma": [0.9, 0.99],
+        "learning_rate": [1e-3, 2e-3, 5e-3],
+        "batch_size": [128, 256, 512],
+        "lr_schedule": ["constant", "linear"]
+    }
 
-    objective = partial(objective_fn, logdir=logdir, n=params.n)
-    study.optimize(objective, n_trials=params.t)
+    study = optuna.create_study(
+        sampler=optuna.samplers.GridSampler(search_space), direction="maximize", study_name="Our awesome study")
+
+    objective = partial(objective_fn, logdir=logdir)
+    study.optimize(objective)
 
 
 if __name__ == "__main__":
-    main({})
+    main()
