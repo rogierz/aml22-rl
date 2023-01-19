@@ -62,7 +62,7 @@ class CustomHopper(MujocoEnv, utils.EzPickle):
 
     def set_parameters(self, task):
         """Set each hopper link's mass to a new value"""
-        print(task)
+        # print(task)
         self.sim.model.body_mass[1:] = task
 
     def step(self, a):
@@ -86,7 +86,7 @@ class CustomHopper(MujocoEnv, utils.EzPickle):
 
         if self.randomize and done:
             self.n_episodes += 1
-            print(f"\nCurrent episode: {self.n_episodes}")
+            # print(f"\nCurrent episode: {self.n_episodes}")
             self.set_random_parameters()
 
         return ob, reward, done, {}

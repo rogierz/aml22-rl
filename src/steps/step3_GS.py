@@ -25,24 +25,32 @@ def constant_schedule(initial_value: float) -> Callable[[float], float]:
     return func
 
 
-def linear_schedule(initial_value: float) -> Callable[[float], float]:
+def step_schedule(initial_value: float) -> Callable[[float], float]:
     """
-    Wrapper for linear LR schedule
+    Wrapper for step LR schedule
     """
     def func(progress_remaining: float) -> float:
-        return initial_value * progress_remaining
+
+        if progress_remaining >= 0.7:
+            return initial_value / 2
+        elif progress_remaining >= 0.4:
+            return initial_value / 4
+        elif progress_remaining >= 0.1:
+            return initial_value / 8
+        else:
+            return initial_value
 
     return func
 
 
-LR_SCHEDULES = {"constant": constant_schedule, "linear": linear_schedule}
+LR_SCHEDULES = {"constant": constant_schedule, "step": step_schedule}
 
 
 def sample_sac_params(trial):
-    gamma = trial.suggest_float("gamma", 0.9, 0.99)
+    gamma = 0.99  # trial.suggest_float("gamma", 0.9, 0.99)
     lr = trial.suggest_float("learning_rate", 1e-3, 5e-3)
     batch_size = trial.suggest_int("batch_size", 128, 512)
-    lr_schedule = trial.suggest_categorical("lr_schedule", ["constant", "linear"])
+    lr_schedule = trial.suggest_categorical("lr_schedule", ["constant", "step"])
 
     return {
         "learning_rate": lr,
@@ -59,37 +67,34 @@ def objective_fn(trial, logdir='.'):
     batch_size = params['batch_size']
     lr_schedule = LR_SCHEDULES[params['lr_schedule']]
 
-    src_trg_avg_return = 0
+    metric = 0
     params_metric = {}
     with SummaryWriter(log_dir=f"{logdir}/trial_{trial.number}") as writer:
         last_trained_env = None
 
-        for source, target in [('source', 'source'), ('source', 'target'), ('target', 'target')]:
-            env_source = gym.make(f"CustomHopper-{source}-v0")
-            env_target = gym.make(f"CustomHopper-{target}-v0")
+        env_source_UDR = gym.make(f"CustomHopper-UDR-source-v0")
+        env_source = gym.make(f"CustomHopper-source-v0")
+        env_target = gym.make(f"CustomHopper-target-v0")
 
-            # We only want to train in source and target once for each env
-            if last_trained_env != source:
-                # if we aren't in ('source', 'target') we retrain on target env
-                model = SAC('MlpPolicy', env_source, learning_rate=lr_schedule(lr), batch_size=batch_size, gamma=gamma,
-                            tensorboard_log=f"{logdir}/trial_{trial.number}")
+        model = SAC('MlpPolicy', env_source_UDR, learning_rate=lr_schedule(lr), batch_size=batch_size, gamma=gamma,
+                    tensorboard_log=f"{logdir}/trial_{trial.number}")
 
-                model.learn(total_timesteps=50_000, progress_bar=True,
-                            tb_log_name=f"SAC_training_{source}")
+        model.learn(total_timesteps=50_000, progress_bar=True,
+                    tb_log_name=f"SAC_training_UDR")
 
-                last_trained_env = source
+        n_episodes = 50
 
-            n_episodes = 50
+        for env_name, test_env in [("source", env_source), ("target", env_target)]:
             run_avg_return = 0
             for ep in range(n_episodes):
                 done = False
                 n_steps = 0
-                obs = env_target.reset()
+                obs = test_env.reset()
                 episode_return = 0
 
                 while not done:  # Until the episode is over
                     action, _ = model.predict(obs, deterministic=True)
-                    obs, reward, done, info = env_target.step(action)
+                    obs, reward, done, info = test_env.step(action)
                     n_steps += 1
                     episode_return += reward
 
@@ -98,17 +103,18 @@ def objective_fn(trial, logdir='.'):
                 run_avg_return += episode_return
             run_avg_return /= n_episodes
 
-            params_metric[f"{source}_{target}/avg_return"] = run_avg_return
-            if source == 'source' and target == 'target':
-                src_trg_avg_return = run_avg_return
+            params_metric[f"test_{env_name}/avg_return"] = run_avg_return
+
+            if env_name == 'target':
+                metric = run_avg_return
 
         writer.add_hparams(params, params_metric)
 
-    return src_trg_avg_return
+    return metric
 
 
 def main(base_prefix='.'):
-    logdir = f"{base_prefix}/sac_tb_step2_3_log"
+    logdir = f"{base_prefix}/sac_tb_step3_log"
 
     try:
         shutil.rmtree(logdir)
@@ -116,10 +122,10 @@ def main(base_prefix='.'):
         print(e)
 
     search_space = {
-        "gamma": [0.9, 0.99],
-        "learning_rate": [1e-3, 2e-3, 5e-3],
-        "batch_size": [128, 256, 512],
-        "lr_schedule": ["constant", "linear"]
+        "gamma": [0.99],
+        "learning_rate": [1e-3, 2e-3],
+        "batch_size": [128, 256],
+        "lr_schedule": ["constant", "step"]
     }
 
     study = optuna.create_study(
