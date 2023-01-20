@@ -49,7 +49,7 @@ Mapping NNs have to learn
 
  - Decide the (CNN) architecture
  - Produce a dataset for the supervised learning part ✓
- - Understand how to use a custom NN with `stable_baselines3` models
+ - Understand how to use a custom NN with `stable_baselines3` models ✓
  - Train the mapping ``2.``
  - Train the mapping ``3.`` (the policy)
 
