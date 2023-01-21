@@ -1,7 +1,15 @@
+# for the model
 torch
-gym==0.21
+gym
 stable-baselines3[extra]
 scipy
 tensorboard
 numpy
 optuna
+
+# for the visualization
+matplotlib
+pandas
+torchvision
+pillow
+tqdm

@@ -5,8 +5,6 @@ In this final step, you're given more flexibility on how you can implement the p
 leaving room for variants and group's own implementations.
 """
 
-import gym
-import cv2
 from gym.spaces import Box
 from stable_baselines3 import SAC
 from model.env.custom_hopper import *
