@@ -11,7 +11,8 @@ class HopperDataset(Dataset):
         if split not in ["train", "val", "test"]:
             raise ValueError("Split must be one of [train, val, test]")
 
-        self.img_labels = pd.read_csv(annotations_file)
+        csv_data = pd.read_csv(annotations_file)
+        self.img_labels = csv_data.loc[csv_data["split"] == split]
         self.img_dir = os.path.join(os.path.dirname(annotations_file), split)
         self.transform = transform
         self.target_transform = target_transform
