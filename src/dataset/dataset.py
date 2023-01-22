@@ -7,9 +7,12 @@ import pandas as pd
 
 
 class HopperDataset(Dataset):
-    def __init__(self, annotations_file, img_dir, transform=None, target_transform=None, sliding_window=5):
+    def __init__(self, annotations_file, split="train", transform=None, target_transform=None, sliding_window=5):
+        if split not in ["train", "val", "test"]:
+            raise ValueError("Split must be one of [train, val, test]")
+
         self.img_labels = pd.read_csv(annotations_file)
-        self.img_dir = img_dir
+        self.img_dir = os.path.join(os.path.dirname(annotations_file), split)
         self.transform = transform
         self.target_transform = target_transform
         self.sliding_window = sliding_window
