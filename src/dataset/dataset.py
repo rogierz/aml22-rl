@@ -28,7 +28,7 @@ class HopperDataset(Dataset):
             if self.transform:
                 image = self.transform(image)
             window.append(image)
-        label = self.img_labels.iloc[idx+self.sliding_window, 1:]
+        label = self.img_labels.iloc[idx+self.sliding_window, 2:]
 
         if self.target_transform:
             label = self.target_transform(label)
