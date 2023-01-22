@@ -9,7 +9,7 @@ from tqdm import trange, tqdm
 
 def main():
     target_env = gym.make('CustomHopper-source-v0')
-    base_prefix = os.path.join("dataset")
+    base_prefix = os.path.join("dataset2")
     if not os.path.exists(base_prefix):
         os.mkdir(base_prefix)
 
@@ -31,7 +31,7 @@ def main():
         dataset_writer = csv.writer(
             csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         dataset_writer.writerow(["image", "split", "height", "angle-top", "angle-thigh", "angle-leg", "angle-foot", "velocity-top-x",
-                                "velocity-top-z", "ang-velocity-top", "ang-velocity-thigh", "ang-velocity-leg", "ang-velocity-foot"])
+                                 "velocity-top-z", "ang-velocity-top", "ang-velocity-thigh", "ang-velocity-leg", "ang-velocity-foot"])
         n_images = 0
         state = target_env.reset()
 
@@ -44,13 +44,19 @@ def main():
                 # Step the simulator to the next timestep
                 state, _, done, _ = target_env.step(action)
 
-                img_state = target_env.render(
-                    mode="rgb_array", width=224, height=224)
+                dim = 224
+                size = 150
+                offx = dim - size - 20
+                offy = dim - size - 12
+
+                img_state = target_env.render(mode="rgb_array", width=dim, height=dim)
                 name_img = f"hopper-{n_images}.jpeg"
-                Image.fromarray(img_state).save(
-                    os.path.join(base_prefix, split, name_img))
+                image = Image.fromarray(img_state)
+                image = image.crop((offx, offy, size+offx, size+offy))
+                image.save(os.path.join(base_prefix, split, name_img))
                 dataset_writer.writerow([name_img, split, *state])
                 n_images += 1
+                # target_env.render()
 
                 if done:
                     state = target_env.reset()

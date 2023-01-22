@@ -15,8 +15,7 @@ from gym.wrappers.resize_observation import ResizeObservation
 class CustomWrapper(gym.ObservationWrapper):
     def __init__(self, env):
         super().__init__(env)
-        self.observation_space = Box(
-            0, 255, shape=(512, 512, 3), dtype=np.uint8)
+        self.observation_space = Box(0, 255, shape=(128, 128, 3), dtype=np.uint8)
 
     def observation(self, obs):
         # obs = obs["pixels"]
@@ -39,6 +38,7 @@ def main(base_prefix="."):
     env = ResizeObservation(CustomWrapper(
         PixelObservationWrapper(env)), shape=(128, 128))
     obs = env.reset()
+    print(obs.shape)
 
     model = SAC('CnnPolicy', env, **sac_params, seed=42, buffer_size=100000)
 
