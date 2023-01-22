@@ -135,18 +135,27 @@ def main(input_file, show=True, output_folder=".", fname="plot"):
         means1[i, j] = np.mean(y4[i][x4 == lr_schedule_values[j]])
         stds1[i, j] = np.std(y4[i][x4 == lr_schedule_values[j]])
 
-
+    x4 = pd.get_dummies(x4)['constant']
+    # x4 contains the mapping: 'constant' -> 0, 'linear' -> 1
     x4 = np.unique(x4)
 
-    axs[1, 1].set_xlim([-1, 2])
+    interval = x4 + [-1, 1]
 
-    axs[1, 1].scatter(x4, means4[0, :])
+    axs[1, 1].set_xlim(interval)
+
+    shift = (interval[1]-interval[0]) / 20
+
+    axs[1, 1].scatter(x4-shift, means4[0, :])
     axs[1, 1].scatter(x4, means4[1, :])
-    axs[1, 1].scatter(x4, means4[2, :])
+    axs[1, 1].scatter(x4+shift, means4[2, :])
 
-    axs[1, 1].errorbar(x4, means4[0, :], yerr=stds4[0, :], fmt='o')
+    axs[1, 1].errorbar(x4-shift, means4[0, :], yerr=stds4[0, :], fmt='o')
     axs[1, 1].errorbar(x4, means4[1, :], yerr=stds4[1, :], fmt='o')
-    axs[1, 1].errorbar(x4, means4[2, :], yerr=stds4[2, :], fmt='o')
+    axs[1, 1].errorbar(x4+shift, means4[2, :], yerr=stds4[2, :], fmt='o')
+
+    axs[1, 1].set_xticks(x4)
+    axs[1, 1].set_xticklabels(lr_schedule_values)
+
 
     axs[1, 1].set_xlabel("learning rate schedule")
 
