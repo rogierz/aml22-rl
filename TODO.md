@@ -65,6 +65,10 @@ Mapping NNs have to learn
  - Try DR on images (data augmentation?)
  - Other
 
+#### Step 4.2.1
+
+ - Try to rescale the rewards (after UDR) based on the distance between the sampled values wrt the actual values (the higher the distance, the higher the scaling factor)
+
 ## Step 5 - Write the report + fill the provided document
 
  - Title
@@ -76,3 +80,11 @@ Mapping NNs have to learn
  - Conclusions
  - References
  - Images + plots
+
+
+
+## Domande per Tiboni
+
+ - possiamo trainare anche sulla base dell'outcome sull'environment di test? (come in BayRn)
+ - riguardo la vision based control policy, basta usare la NatureCnn o dobbiamo fare altro? Perché non abbiamo i mezzi e trainare su colab non è il massimo
+ - LSTM: non abbiamo i mezzi per trainarla, che facciamo?

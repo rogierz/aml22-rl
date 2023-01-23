@@ -49,6 +49,9 @@ def main():
                 offx = dim - size - 20
                 offy = dim - size - 12
 
+                # 224 * 224 * 3 = 150528
+                # 150 * 150 * 3 = 67500 (reduction factor x2.24)
+
                 img_state = target_env.render(mode="rgb_array", width=dim, height=dim)
                 name_img = f"hopper-{n_images}.jpeg"
                 image = Image.fromarray(img_state)
