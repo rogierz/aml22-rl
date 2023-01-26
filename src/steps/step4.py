@@ -4,12 +4,15 @@ Implement an RL training pipeline that uses raw images as state observations to 
 In this final step, you're given more flexibility on how you can implement the pipeline,
 leaving room for variants and group's own implementations.
 """
+import os
+import shutil
 
 from gym.spaces import Box
-from stable_baselines3 import SAC
-from model.env.custom_hopper import *
 from gym.wrappers.pixel_observation import PixelObservationWrapper
 from gym.wrappers.resize_observation import ResizeObservation
+from stable_baselines3 import SAC
+
+from model.env.custom_hopper import *
 
 
 class CustomWrapper(gym.ObservationWrapper):
@@ -23,7 +26,19 @@ class CustomWrapper(gym.ObservationWrapper):
         return obs["pixels"]
 
 
-def main(base_prefix="."):
+def main(base_prefix=".", force=False):
+    logdir = f"{base_prefix}/sac_tb_step4_log"
+
+    if os.path.isdir(logdir):
+        if force:
+            try:
+                shutil.rmtree(logdir)
+            except Exception as e:
+                print(e)
+        else:
+            print(f"Directory {logdir} already exists. Shutting down...")
+            return
+
     sac_params = {
         "learning_rate": 2e-3,
         "gamma": 0.99,
@@ -40,11 +55,11 @@ def main(base_prefix="."):
     obs = env.reset()
     print(obs.shape)
 
-    model = SAC('CnnPolicy', env, **sac_params, seed=42, buffer_size=100000)
+    model = SAC('CnnPolicy', env, **sac_params, seed=42, buffer_size=100000, tensorboard_log=logdir)
 
-    model.learn(total_timesteps=total_timesteps, progress_bar=True)
+    model.learn(total_timesteps=total_timesteps, progress_bar=True, tb_log_name="SAC_training_CNN")
 
-    model.save("cnn_model")
+    model.save(os.path.join("trained_models", "step4"))
 
     n_episodes = 5_000
 

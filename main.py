@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
-from src.utils.parser import parser
 from pprint import pprint
+
 from src.steps.step2_2 import main as step2_2
 from src.steps.step2_3 import main as step2_3
 from src.steps.step3_GS import main as step3
 from src.steps.step4 import main as step4
+from src.utils.parser import parser
 
 STEPS = {
     "2_2": step2_2,
@@ -20,4 +21,4 @@ if __name__ == '__main__':
     step = STEPS[args.step]
 
     # execute step
-    step(args.base_prefix)
+    step(args.base_prefix, bool(args.force))

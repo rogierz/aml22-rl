@@ -3,16 +3,16 @@ Train two agents with your algorithm of choice, on the source and target domain 
 Then, test each model and report its average reward over 50 test episodes.
 In particular, report results for the following “training→test” configurations: source→source, source→target (lower bound), target→target (upper bound).
 """
-from functools import partial
 import os
+import shutil
+from functools import partial
 from typing import Callable
 
 import optuna
-import gym
-from model.env.custom_hopper import *
-from torch.utils.tensorboard import SummaryWriter
 from stable_baselines3 import SAC
-import shutil
+from torch.utils.tensorboard import SummaryWriter
+
+from model.env.custom_hopper import *
 
 
 def constant_schedule(initial_value: float) -> Callable[[float], float]:
@@ -82,6 +82,8 @@ def objective_fn(trial, logdir='.'):
         model.learn(total_timesteps=50_000, progress_bar=True,
                     tb_log_name=f"SAC_training_UDR")
 
+        model.save(os.path.join("trained_models", f"step3_trial_{trial.number}"))
+
         n_episodes = 50
 
         for env_name, test_env in [("source", env_source), ("target", env_target)]:
@@ -98,7 +100,7 @@ def objective_fn(trial, logdir='.'):
                     n_steps += 1
                     episode_return += reward
 
-                writer.add_scalar(f'episode_return', episode_return, ep)
+                writer.add_scalar(f'episode_return/{env_name}', episode_return, ep)
 
                 run_avg_return += episode_return
             run_avg_return /= n_episodes
@@ -113,13 +115,18 @@ def objective_fn(trial, logdir='.'):
     return metric
 
 
-def main(base_prefix='.'):
+def main(base_prefix='.', force=False):
     logdir = f"{base_prefix}/sac_tb_step3_log"
 
-    try:
-        shutil.rmtree(logdir)
-    except Exception as e:
-        print(e)
+    if os.path.isdir(logdir):
+        if force:
+            try:
+                shutil.rmtree(logdir)
+            except Exception as e:
+                print(e)
+        else:
+            print(f"Directory {logdir} already exists. Shutting down...")
+            return
 
     search_space = {
         "gamma": [0.99],

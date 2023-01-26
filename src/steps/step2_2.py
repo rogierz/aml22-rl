@@ -3,25 +3,33 @@ Script using the third-party library stable-baselines3 (sb3) and
 train the Hopper agent with one algorithm of choice between
 TRPO [8], PPO [9] and SAC [7].
 """
+import code
+import os
+import shutil
+
+import gym
 from gym.wrappers.pixel_observation import PixelObservationWrapper
 from stable_baselines3 import SAC
+
 from model.env.custom_hopper import *
-import gym
-import shutil
-import code
 
 
 def observation(self, obs):
     return self._add_pixel_observation(obs)['pixels']
 
 
-def main(base_prefix='.'):
+def main(base_prefix='.', force=False):
     logdir = f"{base_prefix}/sac_tb_step2_2_log"
 
-    try:
-        shutil.rmtree(logdir)
-    except Exception as e:
-        print(e)
+    if os.path.isdir(logdir):
+        if force:
+            try:
+                shutil.rmtree(logdir)
+            except Exception as e:
+                print(e)
+        else:
+            print(f"Directory {logdir} already exists. Shutting down...")
+            return
 
     env = gym.make('CustomHopper-source-v0')
 
@@ -34,7 +42,8 @@ def main(base_prefix='.'):
 
     code.interact(local=locals())
 
-    model.learn(total_timesteps=1000, progress_bar=True, tb_log_name="run")
+    model.learn(total_timesteps=1000, progress_bar=True, tb_log_name="sac_tb_step2_2_log")
+    model.save(os.path.join("trained_models", "step2"))
 
     vec_env = model.get_env()
     n_episodes = 50

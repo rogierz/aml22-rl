@@ -1,5 +1,4 @@
 from argparse import ArgumentParser
-from pprint import pprint
 
 from plot_GS_results import main as plot_gs
 from plot_TPE_results import main as plot_tpe
