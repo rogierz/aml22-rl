@@ -24,25 +24,32 @@ def constant_schedule(initial_value: float) -> Callable[[float], float]:
 
     return func
 
-
-def linear_schedule(initial_value: float) -> Callable[[float], float]:
+def step_schedule(initial_value: float) -> Callable[[float], float]:
     """
-    Wrapper for linear LR schedule
+    Wrapper for step LR schedule
     """
     def func(progress_remaining: float) -> float:
-        return initial_value * progress_remaining
+
+        if progress_remaining >= 0.7:
+            return initial_value / 2
+        elif progress_remaining >= 0.4:
+            return initial_value / 4
+        elif progress_remaining >= 0.1:
+            return initial_value / 8
+        else:
+            return initial_value
 
     return func
 
 
-LR_SCHEDULES = {"constant": constant_schedule, "linear": linear_schedule}
+LR_SCHEDULES = {"constant": constant_schedule, "step": step_schedule}
 
 
 def sample_sac_params(trial):
     gamma = trial.suggest_float("gamma", 0.9, 0.99)
     lr = trial.suggest_float("learning_rate", 1e-3, 5e-3)
     batch_size = trial.suggest_int("batch_size", 128, 512)
-    lr_schedule = trial.suggest_categorical("lr_schedule", ["constant", "linear"])
+    lr_schedule = trial.suggest_categorical("lr_schedule", ["constant", "step"])
 
     return {
         "learning_rate": lr,
@@ -74,7 +81,7 @@ def objective_fn(trial, logdir='.'):
                 model = SAC('MlpPolicy', env_source, learning_rate=lr_schedule(lr), batch_size=batch_size, gamma=gamma,
                             tensorboard_log=f"{logdir}/trial_{trial.number}")
 
-                model.learn(total_timesteps=50_000, progress_bar=True,
+                model.learn(total_timesteps=int(1e6), progress_bar=True,
                             tb_log_name=f"SAC_training_{source}")
 
                 model.save(os.path.join("trained_models", f"step2_trial_{trial.number}_env_{source}"))
@@ -126,7 +133,7 @@ def main(base_prefix='.', force=False):
         "gamma": [0.9, 0.99],
         "learning_rate": [1e-3, 2e-3, 5e-3],
         "batch_size": [128, 256, 512],
-        "lr_schedule": ["constant", "linear"]
+        "lr_schedule": ["constant", "step"]
     }
 
     study = optuna.create_study(
