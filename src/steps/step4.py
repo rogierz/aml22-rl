@@ -100,7 +100,6 @@ def main(base_prefix=".", force=False):
     model.save(os.path.join("trained_models", "step4"))
 
     n_episodes = 50
-    run_avg_return = 0
 
     with SummaryWriter(log_dir=logdir) as writer:
         for env_name, test_env in [("source", env_source), ("target", env_target)]:
