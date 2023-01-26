@@ -6,15 +6,15 @@ leaving room for variants and group's own implementations.
 """
 import os
 import shutil
-
 import gym
+
 from gym.spaces import Box
 from gym.wrappers.pixel_observation import PixelObservationWrapper
 from gym.wrappers.resize_observation import ResizeObservation
 from stable_baselines3 import SAC
+from torch.utils.tensorboard import SummaryWriter
 
 from model.env.custom_hopper import *
-from torch.utils.tensorboard import SummaryWriter
 
 
 class CustomWrapper(gym.ObservationWrapper):
@@ -102,7 +102,7 @@ def main(base_prefix=".", force=False):
     n_episodes = 50
     run_avg_return = 0
 
-    with SummaryWriter(log_dir=f"{logdir}/trial_{trial.number}") as writer:
+    with SummaryWriter(log_dir=logdir) as writer:
         for env_name, test_env in [("source", env_source), ("target", env_target)]:
             run_avg_return = 0
             for ep in range(n_episodes):

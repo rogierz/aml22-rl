@@ -3,17 +3,12 @@ Script using the third-party library stable-baselines3 (sb3) and
 train the Hopper agent with one algorithm of choice between
 TRPO [8], PPO [9] and SAC [7].
 """
-import code
 import os
 import shutil
 
-import gym
-from gym.wrappers.pixel_observation import PixelObservationWrapper
 from stable_baselines3 import SAC
 
 from model.env.custom_hopper import *
-import gym
-import shutil
 
 
 def observation(self, obs):
