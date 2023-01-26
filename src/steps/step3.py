@@ -6,44 +6,13 @@ In particular, report results for the following “training→test” configurat
 import os
 import shutil
 from functools import partial
-from typing import Callable
 
 import optuna
 from stable_baselines3 import SAC
 from torch.utils.tensorboard import SummaryWriter
 
 from model.env.custom_hopper import *
-
-
-def constant_schedule(initial_value: float) -> Callable[[float], float]:
-    """
-    Wrapper for no LR schedule
-    """
-    def func(progress_remaining: float) -> float:
-        return initial_value
-
-    return func
-
-
-def step_schedule(initial_value: float) -> Callable[[float], float]:
-    """
-    Wrapper for step LR schedule
-    """
-    def func(progress_remaining: float) -> float:
-
-        if progress_remaining >= 0.7:
-            return initial_value / 2
-        elif progress_remaining >= 0.4:
-            return initial_value / 4
-        elif progress_remaining >= 0.1:
-            return initial_value / 8
-        else:
-            return initial_value
-
-    return func
-
-
-LR_SCHEDULES = {"constant": constant_schedule, "step": step_schedule}
+from src.utils.lr_schedules import LR_SCHEDULES
 
 
 def sample_sac_params(trial):
