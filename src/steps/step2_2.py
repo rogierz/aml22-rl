@@ -8,7 +8,6 @@ from stable_baselines3 import SAC
 from model.env.custom_hopper import *
 import gym
 import shutil
-import code
 
 
 def observation(self, obs):
@@ -24,15 +23,8 @@ def main(base_prefix='.'):
         print(e)
 
     env = gym.make('CustomHopper-source-v0')
-
-    wrapped_env = PixelObservationWrapper(env)
-
-    wrapped_env.observation = observation
-
-    model = SAC('CnnPolicy', wrapped_env, verbose=1,
+    model = SAC('MlpPolicy', env, verbose=1,
                 tensorboard_log=logdir)
-
-    code.interact(local=locals())
 
     model.learn(total_timesteps=1000, progress_bar=True, tb_log_name="run")
 
@@ -46,7 +38,6 @@ def main(base_prefix='.'):
         while not done:  # Until the episode is over
             action, _ = model.predict(obs, deterministic=True)
             obs, reward, done, info = vec_env.step(action)
-            vec_env.render()
 
 
 if __name__ == "__main__":

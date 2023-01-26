@@ -4,7 +4,7 @@ from src.utils.parser import parser
 from pprint import pprint
 from src.steps.step2_2 import main as step2_2
 from src.steps.step2_3 import main as step2_3
-from src.steps.step3_GS import main as step3
+from src.steps.step3 import main as step3
 from src.steps.step4 import main as step4
 
 STEPS = {
