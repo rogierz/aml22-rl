@@ -36,14 +36,14 @@ def objective_fn(trial, logdir='.'):
     gamma = params['gamma']
     batch_size = params['batch_size']
     lr_schedule = LR_SCHEDULES[params['lr_schedule']]
-
     src_trg_avg_return = 0
     params_metric = {}
-    logger = configure(f"{logdir}/trial_{trial.number}",
-                       ["stdout", "tensorboard"])
+
     last_trained_env = None
 
     for source, target in [('source', 'source'), ('source', 'target'), ('target', 'target')]:
+        logger = configure(f"{logdir}/trial_{trial.number}/{source}_{target}",
+                           ["tensorboard"])
         env_source = gym.make(f"CustomHopper-{source}-v0")
         env_target = gym.make(f"CustomHopper-{target}-v0")
 
@@ -53,8 +53,7 @@ def objective_fn(trial, logdir='.'):
             model = SAC('MlpPolicy', env_source, learning_rate=lr_schedule(
                 lr), batch_size=batch_size, gamma=gamma)
             model.set_logger(logger)
-            model.learn(total_timesteps=int(10), progress_bar=True,
-                        tb_log_name=f"SAC_training_{source}")
+            model.learn(total_timesteps=int(1e6), progress_bar=True)
 
             model.save(os.path.join("trained_models",
                                     f"step2_trial_{trial.number}_env_{source}"))
@@ -76,7 +75,7 @@ def objective_fn(trial, logdir='.'):
                 episode_return += reward
 
             logger.record(
-                f'episode_return/{source}_{target}', episode_return, exclude="stdout")
+                f'episode_return', episode_return)
             logger.dump(ep)
             run_avg_return += episode_return
         run_avg_return /= n_episodes
@@ -85,7 +84,8 @@ def objective_fn(trial, logdir='.'):
         if source == 'source' and target == 'target':
             src_trg_avg_return = run_avg_return
 
-    logger.record("hparams", HParam(params, params_metric), exclude="stdout")
+    logger.record("hparams", HParam(
+        params, params_metric))
     logger.dump()
 
     return src_trg_avg_return
