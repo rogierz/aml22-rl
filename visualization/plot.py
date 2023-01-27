@@ -22,12 +22,12 @@ optional arguments:
 
 from argparse import ArgumentParser
 
-from plot_GS_results import main as plot_gs
-from plot_TPE_results import main as plot_tpe
+from plot_step3_GS_results import main as plot_step3_gs
+from plot_step3_TPE_results import main as plot_step3_tpe
 
 PLOTTERS = {
-    "tpe": plot_tpe,
-    "gs": plot_gs
+    "tpe": plot_step3_tpe,
+    "gs": plot_step3_gs
 }
 
 
