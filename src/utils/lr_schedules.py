@@ -1,3 +1,7 @@
+"""
+This file holds the functions which handle the different learning rate schedules
+"""
+
 from typing import Callable
 
 
@@ -6,9 +10,17 @@ STEP = 0.5
 
 def constant_schedule(initial_value: float) -> Callable[[float], float]:
     """
-    Wrapper for no LR schedule
+    Wrapper for the no-LR-schedule
+
+    :param initial_value: float: The initial value of the learning rate
+    :return: A function that returns a constant value (param initial_value)
     """
     def func(progress_remaining: float) -> float:
+        """
+        This function returns the initial value of the progress bar.
+
+        :param progress_remaining:float: The training progress remaining
+        """
         return initial_value
 
     return func
@@ -16,7 +28,11 @@ def constant_schedule(initial_value: float) -> Callable[[float], float]:
 
 def step_schedule(initial_value: float) -> Callable[[float], float]:
     """
-    Wrapper for step LR schedule
+    Wrapper for a step learning rate schedule, i.e. the LR value over the progress will be a piecewise constant function.
+    The initial value is multiplied by the global variable STEP (the decay factor) every 30% of the progress.
+
+    :param initial_value:float: Set the initial value of the learning rate
+    :return: A function that returns the current LR based on the progress remaining
     """
     def func(progress_remaining: float) -> float:
         if progress_remaining >= 0.7:
