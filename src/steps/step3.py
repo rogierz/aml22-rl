@@ -1,7 +1,7 @@
 """
-Train two agents with your algorithm of choice, on the source and target domain Hoppers respectively.
-Then, test each model and report its average reward over 50 test episodes.
-In particular, report results for the following “training→test” configurations: source→source, source→target (lower bound), target→target (upper bound).
+Train the agent with the SAC algorithm, on the source domain with the Uniform Domain Randomization.
+Then, test it on both the source and target environments (not randomized) and report the average reward over 50 test
+episodes.
 """
 import os
 import shutil
@@ -15,6 +15,15 @@ from functools import partial
 
 
 def sample_sac_params(trial):
+    """
+    A utility function that samples the hyperparameters value from chosen search space based on the current trial
+    The ablated hyperparameters are the learning rate (lr), the batch size for the off-policy training (batch_size) and
+    the learning rate schedule (lr_schedule). The hyperparameter gamma is hardcoded to 0.99, after noticing that
+    the model with this value outperforms any model with lower gamma, regardless the other hparams values.
+
+    :param trial: The current optuna trial
+    :return: A dictionary of hyperparameters for the sac algorithm
+    """
     gamma = 0.99  # trial.suggest_float("gamma", 0.9, 0.99)
     lr = trial.suggest_float("learning_rate", 1e-3, 5e-3)
     batch_size = trial.suggest_int("batch_size", 128, 512)
@@ -30,6 +39,16 @@ def sample_sac_params(trial):
 
 
 def objective_fn(trial, logdir='.'):
+    """
+    The objective_fn function is the objective function that optuna optimizes.
+    It takes a trial object as an argument and returns the value of the objective function calculated with the sampled
+    hparams. The objective function is the average return for the source→target configuration, which is the lower bound
+    for the following steps.
+
+    :param trial: The current optuna trial
+    :param logdir: The directory to which store the logs
+    :return: The average return of the sourceUDR→target configuration
+    """
     params = sample_sac_params(trial)
     lr = params['learning_rate']
     gamma = params['gamma']
@@ -85,6 +104,12 @@ def objective_fn(trial, logdir='.'):
 
 
 def main(base_prefix='.', force=False):
+    """
+    This function runs the ablation study through the optuna APIs.
+
+    :param base_prefix: Specify the path to the directory where to save the results
+    :param force: If it is true (from command line argument), overwrite previous existing logs
+    """
     logdir = f"{base_prefix}/sac_tb_step3_log"
 
     if os.path.isdir(logdir):
