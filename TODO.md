@@ -64,6 +64,7 @@ Mapping NNs have to learn
  - Try different distributions for Domain Randomization
  - Try to rescale the rewards (after UDR) based on the distance between the sampled values wrt the actual values (the higher the distance, the higher the scaling factor)
  - Try different bacbkones over NatureCNN (Resnet18, Conv3D CNN)
+  - Try transfer learning?
 
 ## Step 5 - Write the report + fill the provided document
 
