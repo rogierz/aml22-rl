@@ -1,10 +1,14 @@
-import csv
-import gym
+"""
+This file generates the dataset used to train the backbone of the vision-based policy.
+"""
+
 import os
+
 from PIL import Image
-from model.env.custom_hopper import *
 from stable_baselines3 import SAC
 from tqdm import trange, tqdm
+
+from model.env.custom_hopper import *
 
 
 def main():
