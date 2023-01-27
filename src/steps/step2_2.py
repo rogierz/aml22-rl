@@ -1,16 +1,23 @@
 """
-Script using the third-party library stable-baselines3 (sb3) and
-train the Hopper agent with one algorithm of choice between
-TRPO [8], PPO [9] and SAC [7].
+Script using the third-party library stable-baselines3. It trains the Hopper agent with the SAC algorithm.
 """
 import os
 import shutil
+
 from stable_baselines3 import SAC
-from model.env.custom_hopper import *
 from stable_baselines3.common.logger import configure
+
+from model.env.custom_hopper import *
 
 
 def main(base_prefix='.', force=False):
+    """
+    The access point for step 2.2 . It trains the vanilla SAC agent on a gym environment, then tests its performance
+    on the same environment,
+
+    :param base_prefix: Specify the path to the directory to which store log files
+    :param force: If it is true (from command line argument), overwrite previous existing logs
+    """
     logdir = f"{base_prefix}/sac_tb_step2_2_log"
 
     if os.path.isdir(logdir):
