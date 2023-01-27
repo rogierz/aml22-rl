@@ -171,7 +171,7 @@ def main(input_file, show=True, output_folder=".", fname="plot"):
             os.mkdir(output_folder)
         fname = os.path.join(output_folder, fname)
         if os.path.isfile(fname+".png") or os.path.basename(fname) == "plot":
-            fname += datetime.now().strftime("%Y%m%D-%H%M%S")
+            fname += datetime.now().strftime("%Y%m%d_%H%M%S")
 
         plt.savefig(fname=fname, dpi=200)
 
