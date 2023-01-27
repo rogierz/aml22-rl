@@ -39,8 +39,6 @@ def objective_fn(trial, logdir='.'):
     metric = 0
     params_metric = {}
     with SummaryWriter(log_dir=f"{logdir}/trial_{trial.number}") as writer:
-        last_trained_env = None
-
         env_source_UDR = gym.make(f"CustomHopper-UDR-source-v0")
         env_source = gym.make(f"CustomHopper-source-v0")
         env_target = gym.make(f"CustomHopper-target-v0")
