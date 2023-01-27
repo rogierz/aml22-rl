@@ -5,10 +5,10 @@ TRPO [8], PPO [9] and SAC [7].
 """
 import os
 import shutil
-
 from stable_baselines3 import SAC
-
 from model.env.custom_hopper import *
+from stable_baselines3.common.logger import configure
+
 
 def main(base_prefix='.', force=False):
     logdir = f"{base_prefix}/sac_tb_step2_2_log"
@@ -23,11 +23,13 @@ def main(base_prefix='.', force=False):
             print(f"Directory {logdir} already exists. Shutting down...")
             return
 
-    env = gym.make('CustomHopper-source-v0')
-    model = SAC('MlpPolicy', env, verbose=1,
-                tensorboard_log=logdir)
+    logger = configure(logdir, ["stdout", "tensorboard"])
 
-    model.learn(total_timesteps=1000, progress_bar=True, tb_log_name="run")
+    env = gym.make('CustomHopper-source-v0')
+    model = SAC('MlpPolicy', env, verbose=1)
+    model.set_logger(logger)
+
+    model.learn(total_timesteps=1000, progress_bar=True)
     model.save(os.path.join("trained_models", "step2"))
 
     vec_env = model.get_env()
