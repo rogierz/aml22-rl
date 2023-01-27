@@ -6,14 +6,13 @@ leaving room for variants and group's own implementations.
 """
 import os
 import shutil
-import gym
 
 from gym.spaces import Box
 from gym.wrappers.pixel_observation import PixelObservationWrapper
 from gym.wrappers.resize_observation import ResizeObservation
 from stable_baselines3 import SAC
-from torch.utils.tensorboard import SummaryWriter
 from stable_baselines3.common.logger import configure
+
 from model.env.custom_hopper import *
 
 
@@ -94,13 +93,13 @@ def main(base_prefix=".", force=False):
                 n_steps += 1
                 episode_return += reward
 
-
             logger.record(f'episode_return/{env_name}', episode_return)
             logger.dump(ep)
             run_avg_return += episode_return
         run_avg_return /= n_episodes
         logger.record(f'run_avg_return/{env_name}', run_avg_return)
         logger.dump()
+
 
 if __name__ == '__main__':
     main()
