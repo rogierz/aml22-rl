@@ -1,13 +1,27 @@
-import matplotlib.pyplot as plt
-import matplotlib
-import pandas as pd
-import numpy as np
+"""
+This file plots the data from a GridSearch on the step 3.
+"""
+
 import os
-from itertools import product
 from datetime import datetime
+from itertools import product
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 
 
 def main(input_file, show=True, output_folder=".", fname="plot"):
+    """
+    The main function takes a CSV file as input and plots the average return
+    for each hyperparameter combination. The plot is saved to a .png file in the
+    <output_folder>.
+
+    :param input_file: Specify the path to the csv file containing the data
+    :param show: Show the plot instead of saving it
+    :param output_folder: The folder to which save the plot
+    :param fname: The name of the plot file
+    """
     df = pd.read_csv(input_file)
 
     fig, axs = plt.subplots(2, 2)
@@ -155,7 +169,6 @@ def main(input_file, show=True, output_folder=".", fname="plot"):
 
     axs[1, 1].set_xticks(x4)
     axs[1, 1].set_xticklabels(lr_schedule_values)
-
 
     axs[1, 1].set_xlabel("learning rate schedule")
 
