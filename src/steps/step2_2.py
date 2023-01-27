@@ -10,11 +10,6 @@ from stable_baselines3 import SAC
 
 from model.env.custom_hopper import *
 
-
-def observation(self, obs):
-    return self._add_pixel_observation(obs)['pixels']
-
-
 def main(base_prefix='.', force=False):
     logdir = f"{base_prefix}/sac_tb_step2_2_log"
 
