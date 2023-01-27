@@ -9,7 +9,7 @@ from functools import partial
 
 import optuna
 from stable_baselines3 import SAC
-from torch.utils.tensorboard import SummaryWriter
+from stable_baselines3.common.logger import configure, HParam
 
 from model.env.custom_hopper import *
 from src.utils.lr_schedules import LR_SCHEDULES
@@ -19,7 +19,8 @@ def sample_sac_params(trial):
     gamma = trial.suggest_float("gamma", 0.9, 0.99)
     lr = trial.suggest_float("learning_rate", 1e-3, 5e-3)
     batch_size = trial.suggest_int("batch_size", 128, 512)
-    lr_schedule = trial.suggest_categorical("lr_schedule", ["constant", "step"])
+    lr_schedule = trial.suggest_categorical(
+        "lr_schedule", ["constant", "step"])
 
     return {
         "learning_rate": lr,
@@ -38,50 +39,54 @@ def objective_fn(trial, logdir='.'):
 
     src_trg_avg_return = 0
     params_metric = {}
-    with SummaryWriter(log_dir=f"{logdir}/trial_{trial.number}") as writer:
-        last_trained_env = None
+    logger = configure(f"{logdir}/trial_{trial.number}",
+                       ["stdout", "tensorboard"])
+    last_trained_env = None
 
-        for source, target in [('source', 'source'), ('source', 'target'), ('target', 'target')]:
-            env_source = gym.make(f"CustomHopper-{source}-v0")
-            env_target = gym.make(f"CustomHopper-{target}-v0")
+    for source, target in [('source', 'source'), ('source', 'target'), ('target', 'target')]:
+        env_source = gym.make(f"CustomHopper-{source}-v0")
+        env_target = gym.make(f"CustomHopper-{target}-v0")
 
-            # We only want to train in source and target once for each env
-            if last_trained_env != source:
-                # if we aren't in ('source', 'target') we retrain on target env
-                model = SAC('MlpPolicy', env_source, learning_rate=lr_schedule(lr), batch_size=batch_size, gamma=gamma,
-                            tensorboard_log=f"{logdir}/trial_{trial.number}")
+        # We only want to train in source and target once for each env
+        if last_trained_env != source:
+            # if we aren't in ('source', 'target') we retrain on target env
+            model = SAC('MlpPolicy', env_source, learning_rate=lr_schedule(
+                lr), batch_size=batch_size, gamma=gamma)
+            model.set_logger(logger)
+            model.learn(total_timesteps=int(10), progress_bar=True,
+                        tb_log_name=f"SAC_training_{source}")
 
-                model.learn(total_timesteps=int(1e6), progress_bar=True,
-                            tb_log_name=f"SAC_training_{source}")
+            model.save(os.path.join("trained_models",
+                                    f"step2_trial_{trial.number}_env_{source}"))
 
-                model.save(os.path.join("trained_models", f"step2_trial_{trial.number}_env_{source}"))
+            last_trained_env = source
 
-                last_trained_env = source
+        n_episodes = 50
+        run_avg_return = 0
+        for ep in range(n_episodes):
+            done = False
+            n_steps = 0
+            obs = env_target.reset()
+            episode_return = 0
 
-            n_episodes = 50
-            run_avg_return = 0
-            for ep in range(n_episodes):
-                done = False
-                n_steps = 0
-                obs = env_target.reset()
-                episode_return = 0
+            while not done:  # Until the episode is over
+                action, _ = model.predict(obs, deterministic=True)
+                obs, reward, done, info = env_target.step(action)
+                n_steps += 1
+                episode_return += reward
 
-                while not done:  # Until the episode is over
-                    action, _ = model.predict(obs, deterministic=True)
-                    obs, reward, done, info = env_target.step(action)
-                    n_steps += 1
-                    episode_return += reward
+            logger.record(
+                f'episode_return/{source}_{target}', episode_return, exclude="stdout")
+            logger.dump(ep)
+            run_avg_return += episode_return
+        run_avg_return /= n_episodes
 
-                writer.add_scalar(f'episode_return', episode_return, ep)
+        params_metric[f"avg_return/{source}_{target}"] = run_avg_return
+        if source == 'source' and target == 'target':
+            src_trg_avg_return = run_avg_return
 
-                run_avg_return += episode_return
-            run_avg_return /= n_episodes
-
-            params_metric[f"{source}_{target}/avg_return"] = run_avg_return
-            if source == 'source' and target == 'target':
-                src_trg_avg_return = run_avg_return
-
-        writer.add_hparams(params, params_metric)
+    logger.record("hparams", HParam(params, params_metric), exclude="stdout")
+    logger.dump()
 
     return src_trg_avg_return
 
