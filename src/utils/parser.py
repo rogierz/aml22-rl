@@ -1,3 +1,7 @@
+"""
+This file instantiates the parser for the command line arguments received by main.py
+"""
+
 import argparse
 
 parser = argparse.ArgumentParser()
