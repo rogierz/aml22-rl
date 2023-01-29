@@ -31,7 +31,7 @@ def main(base_prefix=".", force=False):
             print(f"Directory {logdir} already exists. Shutting down...")
             return
 
-    logger = configure(logdir, ["stdout", "tensorboard"])
+    logger = configure(logdir, ["tensorboard"])
 
     sac_params = {
         "learning_rate": 2e-3,
