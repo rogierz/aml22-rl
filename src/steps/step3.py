@@ -98,6 +98,8 @@ def objective_fn(trial, logdir='.'):
             metric = run_avg_return
 
     logger.record("hparams", HParam(params, params_metric), exclude="stdout")
+    for k, v in params_metric.items():
+        logger.record(k, v)
     logger.dump()
 
     return metric

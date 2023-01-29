@@ -3,25 +3,34 @@ VISION-BASED REINFORCEMENT LEARNING
 Implement an RL training pipeline that uses raw images as state observations to the agent.
 In this final step, you're given more flexibility on how you can implement the pipeline,
 leaving room for variants and group's own implementations.
+
+Variants: at this stage, you may feel free to implement any idea to attempt at further improving
+the sim-to-real transfer in our simple scenario, for the vision-based RL task.
+For example, variants may try to investigate domain randomization on the appearance
+of the images to improve the transfer from source to target domain. Other possible directions
+may include investigating better representation learning techniques (such as transfer learning
+from pre-trained convolutional neural networks) or domain augmentation.
+Rather than requiring you to obtain actual improvements, this step is for you to go beyond
+the guidelines and get a feeling of a research-like approach.
+
+The following variant 
 """
+from model.env.custom_hopper import *
 import os
 import shutil
 
-from gym.spaces import Box
 from gym.wrappers.pixel_observation import PixelObservationWrapper
 from gym.wrappers.resize_observation import ResizeObservation
 from stable_baselines3 import SAC
 from stable_baselines3.common.logger import configure
-from ..utils.wrapper import CustomWrapper
-from model.env.custom_hopper import *
-from datetime import datetime
+from ..utils.wrapper import CustomWrapper, RewardWrapper
 
 
 def main(base_prefix=".", force=False):
 
     logdir = f"{base_prefix}/sac_tb_step4_log"
 
-    if os.path.isdir("logdir"):
+    if os.path.isdir(logdir):
         if force:
             try:
                 shutil.rmtree(logdir)
@@ -39,7 +48,7 @@ def main(base_prefix=".", force=False):
         "batch_size": 128
     }
 
-    total_timesteps = int(10)
+    total_timesteps = int(1e6)
 
     env = gym.make(f"CustomHopper-UDR-source-v0")
     env_source = ResizeObservation(CustomWrapper(
@@ -57,12 +66,7 @@ def main(base_prefix=".", force=False):
     model.learn(total_timesteps=total_timesteps,
                 progress_bar=True, tb_log_name="SAC_training_CNN")
 
-    if os.path.isfile(os.path.join("trained_models", "step4.zip")):
-        fname = datetime.now().strftime("%Y%m%d_%H%M%S")
-        print(fname)
-        model.save(os.path.join("trained_models", f"step4_{fname}"))
-    else:
-        model.save(os.path.join("trained_models", "step4"))
+    model.save(os.path.join("trained_models", "step4"))
 
     n_episodes = 50
 

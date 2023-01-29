@@ -105,6 +105,8 @@ def objective_fn(trial, logdir='.'):
 
     logger.record("hparams", HParam(
         params, params_metric))
+    for k, v in params_metric.items():
+        logger.record(k, v)
     logger.dump()
 
     return src_trg_avg_return
