@@ -9,6 +9,10 @@ from gym.wrappers.resize_observation import ResizeObservation
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 from stable_baselines3 import SAC
 from torchvision.models import resnet18
+from stable_baselines3.common.logger import configure
+from datetime import datetime
+import os
+import shutil
 
 class CustomWrapper(gym.ObservationWrapper):
     def __init__(self, env):
@@ -48,20 +52,71 @@ class ResNet(BaseFeaturesExtractor):
         print("OUTPUT SHAPE: ", x.shape)
         return x
 
-policy_kwargs = dict(features_extractor_class=ResNet)
-
-sac_params = {
-        "learning_rate": 2e-3,
-        "gamma": 0.99,
-        "batch_size": 128
-    }
-
 
 def main(base_prefix=".", force=False):
+
+    logdir = f"{base_prefix}/sac_tb_step4_2_log"
+
+
+    policy_kwargs = dict(features_extractor_class=ResNet)
+
+    sac_params = {
+            "learning_rate": 2e-3,
+            "gamma": 0.99,
+            "batch_size": 128
+    }
+
+    if os.path.isdir("logdir"):
+        if force:
+            try:
+                shutil.rmtree(logdir)
+            except Exception as e:
+                print(e)
+        else:
+            print(f"Directory {logdir} already exists. Shutting down...")
+            return
+    
     env = gym.make(f"CustomHopper-UDR-source-v0")
     env = ResizeObservation(CustomWrapper(
                 PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(224, 224))
 
+    env_source = ResizeObservation(CustomWrapper(
+                PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(128, 128))
+    env_target =  ResizeObservation(CustomWrapper(
+                PixelObservationWrapper(gym.make(f"CustomHopper-target-v0"))), shape=(128, 128))
+
+    logger = configure(logdir, ["stdout", "tensorboard"])
+
     model = SAC("CnnPolicy", env, **sac_params, policy_kwargs=policy_kwargs, seed=42, buffer_size=10000)
     
     model.learn(total_timesteps=1000, progress_bar=True)
+
+    if os.path.isfile(os.path.join("trained_models", "step4_2.zip")):
+        fname = datetime.now().strftime("%Y%m%d_%H%M%S")
+        print(fname)
+        model.save(os.path.join("trained_models", f"step4_2_{fname}"))
+    else:
+        model.save(os.path.join("trained_models", "step4_2"))
+
+    n_episodes = 50
+
+    for env_name, test_env in [("source", env_source), ("target", env_target)]:
+        run_avg_return = 0
+        for ep in range(n_episodes):
+            done = False
+            n_steps = 0
+            obs = test_env.reset()
+            episode_return = 0
+
+            while not done:  # Until the episode is over
+                action, _ = model.predict(obs, deterministic=True)
+                obs, reward, done, info = test_env.step(action)
+                n_steps += 1
+                episode_return += reward
+
+            logger.record(f'episode_return/{env_name}', episode_return)
+            logger.dump(ep)
+            run_avg_return += episode_return
+        run_avg_return /= n_episodes
+        logger.record(f'run_avg_return/{env_name}', run_avg_return)
+        logger.dump()
