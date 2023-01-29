@@ -1,6 +1,6 @@
 # for the model
-torch
-gym
+torch==1.12
+gym==0.21
 stable-baselines3[extra]
 scipy
 tensorboard
@@ -10,6 +10,6 @@ optuna
 # for the visualization
 matplotlib
 pandas
-torchvision
+torchvision==0.13
 pillow
 tqdm
