@@ -66,7 +66,7 @@ def main(base_prefix=".", force=False):
     model.learn(total_timesteps=total_timesteps,
                 progress_bar=True, tb_log_name="SAC_training_CNN")
 
-    model.save(os.path.join("trained_models", "step4"))
+    model.save(os.path.join("trained_models", "step4_1"))
 
     n_episodes = 50
 
