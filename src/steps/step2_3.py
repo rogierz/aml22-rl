@@ -75,7 +75,7 @@ def objective_fn(trial, logdir='.'):
             model.learn(total_timesteps=int(1e6), progress_bar=True)
 
             model.save(os.path.join("trained_models",
-                                    f"step2_trial_{trial.number}_env_{source}"))
+                                    f"step2_3_trial_{trial.number}_env_{source}"))
 
             last_trained_env = source
 
