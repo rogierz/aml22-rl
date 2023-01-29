@@ -14,6 +14,7 @@ from stable_baselines3 import SAC
 from stable_baselines3.common.logger import configure
 
 from model.env.custom_hopper import *
+from datetime import datetime
 
 
 class CustomWrapper(gym.ObservationWrapper):
@@ -29,7 +30,7 @@ def main(base_prefix=".", force=False):
 
     logdir = f"{base_prefix}/sac_tb_step4_log"
 
-    if os.path.isdir(logdir):
+    if os.path.isdir("logdir"):
         if force:
             try:
                 shutil.rmtree(logdir)
@@ -41,15 +42,13 @@ def main(base_prefix=".", force=False):
 
     logger = configure(logdir, ["stdout", "tensorboard"])
 
-    
-
     sac_params = {
         "learning_rate": 2e-3,
         "gamma": 0.99,
         "batch_size": 128
     }
 
-    total_timesteps = int(1e6)
+    total_timesteps = int(10)
 
     env = gym.make(f"CustomHopper-UDR-source-v0")
     env_source = ResizeObservation(CustomWrapper(
@@ -66,16 +65,12 @@ def main(base_prefix=".", force=False):
 
     model.learn(total_timesteps=total_timesteps, progress_bar=True, tb_log_name="SAC_training_CNN")
 
-    # if os.path.isfile("step4.zip"):
-    #     try:
-    #         shutil.rmtree(logdir)
-    #     except Exception as e:
-    #         print(e)
-    #     else:
-    #         #fname += datetime.now().strftime("%Y%m%D-%H%M%S")
-    #         print(f"Directory {logdir} already exists. Shutting down...")
-    #         return
-    model.save(os.path.join("trained_models", "step4"))
+    if os.path.isfile(os.path.join("trained_models", "step4.zip")):
+        fname = datetime.now().strftime("%Y%m%d_%H%M%S")
+        print(fname)
+        model.save(os.path.join("trained_models", f"step4_{fname}"))
+    else:
+        model.save(os.path.join("trained_models", "step4"))
 
     n_episodes = 50
 
