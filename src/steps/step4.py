@@ -39,7 +39,7 @@ def main(base_prefix=".", force=False):
         "batch_size": 128
     }
 
-    total_timesteps = int(10)
+    total_timesteps = 150_000
 
     env = gym.make(f"CustomHopper-UDR-source-v0")
     env_source = ResizeObservation(CustomWrapper(
