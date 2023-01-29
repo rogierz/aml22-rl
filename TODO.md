@@ -68,20 +68,40 @@ Mapping NNs have to learn
 
 ## Step 5 - Write the report + fill the provided document
 
- - Title
+ - Title: Sim-to-Real transfer of Reinforcement Learning policies in robotics
  - Abstract
  - Introduction
- - Related Work
+   - What is RL
+   - Why is Reinforcement Learning appealing for the robotics field?
+   - What is the task given in the Hopper environment?
+ - Related Work (other similar projects trying to solve the same tasks in different ways)
+   - What are the challenges of the sim-to-real transfer paradigm?
+   - What are the popular strategies for performing an efficient transfer?
+ - Background (what is our baseline)
+   - What is the reality gap?
+   - What is Uniform Domain Randomization?
+   - What is vision-based RL?
+   - MuJoCo + Gym
  - Method
+   - Description of the Hopper environment
+   - SAC (+MLP)
+   - UDR
+   - NatureCnn
+   - ResNet
+   - RewardWrapper
  - Experiments
+   - our practical work 
+     - step 2.2
+     - step 2.3
+     - step 3
+     - step 4.1
+     - step 4.2
+   - Images + plots
  - Conclusions
+   - What are the limitations of UDR?
+   - Future work (LSTM)
  - References
- - Images + plots
+ - Appendix
+   - Why we would have used it and why we didn't use it
 
-
-
-## Domande per Tiboni
-
- - possiamo trainare anche sulla base dell'outcome sull'environment di test? (come in BayRn)
- - riguardo la vision based control policy, basta usare la NatureCnn o dobbiamo fare altro? Perché non abbiamo i mezzi e trainare su colab non è il massimo
- - LSTM: non abbiamo i mezzi per trainarla, che facciamo?
+Estimated: 8-9 pages
