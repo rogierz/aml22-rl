@@ -11,17 +11,16 @@ from .mujoco_env import MujocoEnv
 from torch.distributions.uniform import Uniform
 from scipy.stats import truncnorm
 
-
 BODY_PARTS = {'torso': 1, 'thigh': 2, 'leg': 3, 'foot': 4}
 
 
 class CustomHopper(MujocoEnv, utils.EzPickle):
-    def __init__(self, domain=None, randomize=False, uniform_ratio=0.5):
+    def __init__(self, domain=None, randomize=None, uniform_ratio=0.5, offset=0.5, low=0.5, high=5):
         self.randomize = randomize
         MujocoEnv.__init__(self, 4)
         utils.EzPickle.__init__(self)
 
-        self.original_masses = np.copy(self.sim.model.body_mass[1:])    # Default link masses
+        self.original_masses = np.copy(self.sim.model.body_mass[1:])  # Default link masses
 
         if domain == 'source':  # Source environment has an imprecise torso mass (1kg shift)
             self.sim.model.body_mass[1] -= 1.0
@@ -33,12 +32,32 @@ class CustomHopper(MujocoEnv, utils.EzPickle):
         leg_mass = self.sim.model.body_mass[BODY_PARTS['leg']]
         foot_mass = self.sim.model.body_mass[BODY_PARTS['foot']]
 
-        # self.distributions = {'thigh': Uniform((1 - uniform_ratio) * thigh_mass, (1 + uniform_ratio) * thigh_mass),
-        #                       'leg': Uniform((1 - uniform_ratio) * leg_mass, (1 + uniform_ratio) * leg_mass),
-        #                       'foot': Uniform((1 - uniform_ratio) * foot_mass, (1 + uniform_ratio) * foot_mass)}
-        self.distributions = {'thigh': Uniform(0.5, 5),
-                              'leg': Uniform(0.5, 5),
-                              'foot': Uniform(0.5, 5)}
+        if self.randomize == "interval":
+            # UDR-v0
+            if low <= 0:
+                raise ValueError("Masses cannot be negative or zero")
+            self.distributions = {'thigh': Uniform(low, high),
+                                  'leg': Uniform(low, high),
+                                  'foot': Uniform(low, high)}
+        elif self.randomize == "relative":
+            # UDR-v1
+            if uniform_ratio >= 1:
+                raise ValueError("Masses cannot be negative or zero")
+            self.distributions = {'thigh': Uniform((1 - uniform_ratio) * thigh_mass, (1 + uniform_ratio) * thigh_mass),
+                                  'leg': Uniform((1 - uniform_ratio) * leg_mass, (1 + uniform_ratio) * leg_mass),
+                                  'foot': Uniform((1 - uniform_ratio) * foot_mass, (1 + uniform_ratio) * foot_mass)}
+        elif self.randomize == "absolute":
+            # UDR-v2
+            # OBS: if <some_mass> - offset <= 0, automatically set lower bound of distrib equal to 0.1 * <some_mass>
+            self.distributions = {'thigh': Uniform(
+                                        thigh_mass - offset if (thigh_mass - offset) > 0 else 0.1 * thigh_mass,
+                                        thigh_mass + offset),
+                                  'leg': Uniform(
+                                        leg_mass - offset if (leg_mass - offset) > 0 else 0.1 * leg_mass,
+                                        leg_mass + offset),
+                                  'foot': Uniform(
+                                      foot_mass - offset if (foot_mass - offset) > 0 else 0.1 * foot_mass,
+                                      foot_mass + offset)}
 
     def set_random_parameters(self):
         """Set random masses
@@ -116,31 +135,49 @@ class CustomHopper(MujocoEnv, utils.EzPickle):
     Registered environments
 """
 gym.envs.register(
-        id="CustomHopper-v0",
-        entry_point="%s:CustomHopper" % __name__,
-        max_episode_steps=500,
+    id="CustomHopper-v0",
+    entry_point="%s:CustomHopper" % __name__,
+    max_episode_steps=500,
 )
 
 gym.envs.register(
-        id="CustomHopper-source-v0",
-        entry_point="%s:CustomHopper" % __name__,
-        max_episode_steps=500,
-        kwargs={"domain": "source"}
+    id="CustomHopper-source-v0",
+    entry_point="%s:CustomHopper" % __name__,
+    max_episode_steps=500,
+    kwargs={"domain": "source"}
 )
 
 gym.envs.register(
-        id="CustomHopper-UDR-source-v0",
-        entry_point="%s:CustomHopper" % __name__,
-        max_episode_steps=500,
-        kwargs={"domain": "source",
-                "randomize": True,
-                "uniform_ratio": 0.5}
+    id="CustomHopper-UDR-source-v0",
+    entry_point="%s:CustomHopper" % __name__,
+    max_episode_steps=500,
+    kwargs={"domain": "source",
+            "randomize": "interval",
+            "low": 0.5,
+            "high": 5}
 )
 
 gym.envs.register(
-        id="CustomHopper-target-v0",
-        entry_point="%s:CustomHopper" % __name__,
-        max_episode_steps=500,
-        kwargs={"domain": "target"}
+    id="CustomHopper-UDR-source-v1",
+    entry_point="%s:CustomHopper" % __name__,
+    max_episode_steps=500,
+    kwargs={"domain": "source",
+            "randomize": "relative",
+            "uniform_ratio": 0.5}
 )
 
+gym.envs.register(
+    id="CustomHopper-UDR-source-v2",
+    entry_point="%s:CustomHopper" % __name__,
+    max_episode_steps=500,
+    kwargs={"domain": "source",
+            "randomize": "absolute",
+            "offset": 0.5}
+)
+
+gym.envs.register(
+    id="CustomHopper-target-v0",
+    entry_point="%s:CustomHopper" % __name__,
+    max_episode_steps=500,
+    kwargs={"domain": "target"}
+)
