@@ -16,7 +16,7 @@ echo "2. Creating virtualenv..."
 python -m venv .venv
 echo "export MUJOCO_PY_MUJOCO_PATH=/home/azureuser/localfiles/mujoco210" >> .venv/bin/activate
 echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/home/azureuser/localfiles/mujoco210/bin" >> .venv/bin/activate
-echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia" >> .venv/bin/activate
+echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/usr/lib/nvidia" >> .venv/bin/activate
 
 source .venv/bin/activate
 
