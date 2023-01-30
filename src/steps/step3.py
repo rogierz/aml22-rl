@@ -65,7 +65,7 @@ def objective_fn(trial, logdir='.'):
     model = SAC('MlpPolicy', env_source_UDR, learning_rate=lr_schedule(
         lr), batch_size=batch_size, gamma=gamma, verbose=1)
     model.set_logger(logger)
-    model.learn(total_timesteps=int(1e6), progress_bar=True,
+    model.learn(total_timesteps=int(100_000), progress_bar=True,
                 tb_log_name=f"SAC_training_UDR")
 
     model.save(os.path.join("trained_models", f"step3_trial_{trial.number}"))
