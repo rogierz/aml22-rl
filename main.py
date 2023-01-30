@@ -17,6 +17,7 @@ from src.steps.step2_2 import main as step2_2
 from src.steps.step2_3 import main as step2_3
 from src.steps.step3 import main as step3
 from src.steps.step4 import main as step4
+from src.steps.step4_1 import main as step4_1
 from src.steps.step4_2 import main as step4_2
 from src.utils.parser import parser
 
@@ -25,6 +26,7 @@ STEPS = {
     "2_3": step2_3,
     "3": step3,
     "4": step4,
+    "4_1": step4_1,
     "4_2": step4_2
 }
 
