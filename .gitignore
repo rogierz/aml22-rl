@@ -136,3 +136,6 @@ dmypy.json
 # Exclude logs
 /logs
 /old/
+
+# Exclude trained_models
+trained_models/
