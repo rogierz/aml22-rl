@@ -25,7 +25,7 @@ class CustomWrapper(gym.ObservationWrapper):
 
 class LSTM(BaseFeaturesExtractor):
     
-    def __init__(self,  observation_space: spaces.Box, features_dim: int = 256, embed_dim = 512, hidden_size = 512, num_layers = 1):
+    def __init__(self,  observation_space: spaces.Box, features_dim: int = 512, embed_dim = 512, hidden_size = 512, num_layers = 1):
           super().__init__(observation_space, features_dim)
           self.DEVICE = "cuda"
 
@@ -59,9 +59,10 @@ class LSTM(BaseFeaturesExtractor):
           # print("\n INPUT TO THE BACKBONE SHAPE: ", x.shape)
           x = self.backbone(x)
 
-          # print("\n INPUT TO THE 'PROJECTION' SHAPE: ", x.shape)
+          print("\n OUTPUT OF BACKBONE: ", x.shape)
           x = x.reshape(batch_size, -1, self.embed_dim) # then i comeback the original shape
-
+        
+          print("RESHAPING.. INPUT TO LSTM: ", x.shape)  
           # lstm part
           h_0 = th.autograd.Variable(th.randn(self.num_layers, x.size(0), self.hidden_size)).to(self.DEVICE)
           c_0 = th.autograd.Variable(th.randn(self.num_layers, x.size(0), self.hidden_size)).to(self.DEVICE)
