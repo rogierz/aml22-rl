@@ -34,7 +34,7 @@ class RewardWrapper(gym.RewardWrapper):
         coeff = 1
 
         # get the value of the masses of the target environment (always not modified, even in UDR scenario)
-        target_masses = self.original_masses
+        target_masses = self.env.original_masses
 
         # get the value of the masses of the training environment (UDR masses)
         source_masses = self.env.sim.model.body_mass[1:]
