@@ -58,14 +58,14 @@ def objective_fn(trial, logdir='.'):
     logger = configure(f"{logdir}/trial_{trial.number}", ["tensorboard"])
     metric = 0
     params_metric = {}
-    env_source_UDR = gym.make(f"CustomHopper-UDR-source-v0")
+    env_source_UDR = gym.make(f"CustomHopper-UDR-source-v1")
     env_source = gym.make(f"CustomHopper-source-v0")
     env_target = gym.make(f"CustomHopper-target-v0")
 
     model = SAC('MlpPolicy', env_source_UDR, learning_rate=lr_schedule(
         lr), batch_size=batch_size, gamma=gamma, verbose=1)
     model.set_logger(logger)
-    model.learn(total_timesteps=int(100_000), progress_bar=True,
+    model.learn(total_timesteps=int(1e5), progress_bar=True,
                 tb_log_name=f"SAC_training_UDR")
 
     model.save(os.path.join("trained_models", f"step3_trial_{trial.number}"))
@@ -112,7 +112,7 @@ def main(base_prefix='.', force=False):
     :param base_prefix: Specify the path to the directory where to save the results
     :param force: If it is true (from command line argument), overwrite previous existing logs
     """
-    logdir = f"{base_prefix}/sac_tb_step3_log"
+    logdir = f"{base_prefix}/sac_tb_step3v1_log"
 
     if os.path.isdir(logdir):
         if force:
