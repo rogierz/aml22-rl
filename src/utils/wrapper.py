@@ -48,4 +48,11 @@ class RewardWrapper(gym.RewardWrapper):
             # bonus if masses very different
             coeff += similarity
 
-        return coeff*reward
+        new_reward = coeff*reward
+        if coeff < 0 or reward < 0 or new_reward < 0:
+            print(
+                f"DEBUG: found coeff={float(coeff):.2f} and reward={float(reward):.2f}, new reward is {float(new_reward):.2f}")
+            print(f"DEBUG: target_masses={target_masses}")
+            print(f"DEBUG: source_masses={source_masses}")
+            print(f"DEBUG: mode={self.mode.name}")
+        return new_reward
