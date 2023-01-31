@@ -2,7 +2,6 @@ import gym
 import numpy as np
 from enum import Enum
 from gym.spaces import Box
-import torch.nn.functional as F
 
 
 class CustomWrapper(gym.ObservationWrapper):
@@ -36,20 +35,15 @@ class RewardWrapper(gym.RewardWrapper):
 
         # get the value of the masses of the target environment (always not modified, even in UDR scenario)
         target_masses = self.original_masses
-        target_masses = target_masses/np.linalg.norm(target_masses)
 
-        # get the valeu of the masses of the training environment (UDR masses)
+        # get the value of the masses of the training environment (UDR masses)
         source_masses = self.env.sim.model.body_mass[1:]
-        source_masses = source_masses/np.linalg.norm(source_masses)
 
-        distance = source_masses.T @ target_masses  # cosine similarity
+        # cosine similarity
+        distance = (source_masses.T @ target_masses) / (np.linalg.norm(source_masses) * np.linalg.norm(target_masses))
         if self.mode == RewardWrapperMode.MINIMIZE:
-            coeff = 1 + (1-distance)
+            coeff += (1-distance)
         else:
-            coeff = 1 + distance
+            coeff += distance
 
         return coeff*reward
-
-
-[1, 2, 3]
-[2, 2, 3]
