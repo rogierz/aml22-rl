@@ -6,6 +6,7 @@ from gym import spaces
 from gym.spaces import Box
 from gym.wrappers.pixel_observation import PixelObservationWrapper
 from gym.wrappers.resize_observation import ResizeObservation
+from gym.wrappers.frame_stack import FrameStack
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 from stable_baselines3 import SAC
 from torchvision.models import resnet18
@@ -21,7 +22,55 @@ class CustomWrapper(gym.ObservationWrapper):
 
     def observation(self, obs):
         return obs["pixels"]
-        
+
+class LSTM(BaseFeaturesExtractor):
+    
+    def __init__(self,  observation_space: spaces.Box, features_dim: int = 256, embed_dim = 64, hidden_size = 64, num_layers = 1):
+          super().__init__(observation_space, features_dim)
+          self.DEVICE = "cuda"
+
+          self.embed_dim = embed_dim
+          self.hidden_size = hidden_size
+          self.num_layers = num_layers
+
+          # ------ Backbone
+          self.backbone = resnet18(weights='DEFAULT') #models.ssdlite320_mobilenet_v3_large(weights="DEFAULT") 
+          # stem adjustment
+          self.backbone.conv1 = nn.Conv2d(3, 64, 3, 1, 1, bias=False)
+          # only feature maps
+          self.backbone.fc = nn.Identity()
+          
+          #self.proj_embedding = nn.Sequential( # Projection head
+          #  nn.Linear(512, embed_dim),
+          #  nn.ReLU()
+          #)
+          # ------ LSTM
+          self.lstm_cell = nn.LSTM(512, 512, num_layers=num_layers, batch_first=True)
+          self.backbone.train(False)
+          self.backbone.train(True)
+
+    def forward(self, x):      
+          print("\n INPUT TO THE NET: ", x.shape)
+          x = x.permute(0, 1, 4, 2, 3)
+          batch_size, img_size = x.shape[0], x.shape[2:]
+          x = x.reshape(-1, *img_size) # i merge the batch_size and num_seq in order to feed everything to the cnn
+
+          # print("\n INPUT TO THE BACKBONE SHAPE: ", x.shape)
+          x = self.backbone(x)
+
+          # print("\n INPUT TO THE 'PROJECTION' SHAPE: ", x.shape)
+          x = x.reshape(batch_size, -1, self.embed_dim) # then i comeback the original shape
+
+          # lstm part
+          h_0 = th.autograd.Variable(th.randn(self.num_layers, x.size(0), self.hidden_size)).to(self.DEVICE)
+          c_0 = th.autograd.Variable(th.randn(self.num_layers, x.size(0), self.hidden_size)).to(self.DEVICE)
+          y, (hn, cn) = self.lstm_cell(x, (h_0, c_0))
+          # print("\n LSTM OUTPUT SHAPE: ", y.shape)          
+          y = y[:, -1, :]
+
+          # print("\n FINAL OUTPUT SHAPE: ", y.shape)
+          return y
+
 #ResNet18 with some adjustments 
 class ResNet(BaseFeaturesExtractor):
     """
@@ -34,7 +83,7 @@ class ResNet(BaseFeaturesExtractor):
         super().__init__(observation_space, features_dim)
 
         self.backbone = resnet18()#weights='IMAGENET1K_V1')
-        # stem adjustment
+        # stem adjustment 
         self.backbone.conv1 = nn.Conv2d(3, 64, 3, 1, 1, bias=False)
         self.backbone.maxpool = nn.Identity()
         # only feature maps
@@ -47,7 +96,8 @@ class ResNet(BaseFeaturesExtractor):
 
     def forward(self, observations: th.Tensor) -> th.Tensor:
         print("INPUT SHAPE: ", observations.shape)
-        x = self.backbone(observations)
+
+        x = self.backbone(x)
         x = self.proj_head(x)
         print("OUTPUT SHAPE: ", x.shape)
         return x
@@ -58,7 +108,7 @@ def main(base_prefix=".", force=False):
     logdir = f"{base_prefix}/sac_tb_step4_2_log"
 
 
-    policy_kwargs = dict(features_extractor_class=ResNet)
+    policy_kwargs = dict(features_extractor_class=LSTM)
 
     sac_params = {
             "learning_rate": 2e-3,
@@ -80,14 +130,21 @@ def main(base_prefix=".", force=False):
     env = ResizeObservation(CustomWrapper(
                 PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(224, 224))
 
+    env = FrameStack(env, 4)
+
+    print("Observation space: ", env.observation_space)
+
     env_source = ResizeObservation(CustomWrapper(
                 PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(128, 128))
     env_target =  ResizeObservation(CustomWrapper(
                 PixelObservationWrapper(gym.make(f"CustomHopper-target-v0"))), shape=(128, 128))
 
+    env_source = FrameStack(env_source, 4)
+    env_target = FrameStack(env_target, 4)
+
     logger = configure(logdir, ["stdout", "tensorboard"])
 
-    model = SAC("CnnPolicy", env, **sac_params, policy_kwargs=policy_kwargs, seed=42, buffer_size=10000)
+    model = SAC("CnnPolicy", env, **sac_params, policy_kwargs=policy_kwargs, seed=42, buffer_size=1000)
     
     model.learn(total_timesteps=1000, progress_bar=True)
 
