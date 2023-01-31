@@ -40,11 +40,12 @@ class RewardWrapper(gym.RewardWrapper):
         source_masses = self.env.sim.model.body_mass[1:]
 
         # cosine similarity
-        distance = (source_masses.T @ target_masses) / \
-            (np.linalg.norm(source_masses) * np.linalg.norm(target_masses))
-        if self.mode == RewardWrapperMode.MINIMIZE:
-            coeff += (1-distance)
+        similarity = (source_masses.T @ target_masses) / (np.linalg.norm(source_masses) * np.linalg.norm(target_masses))
+        if self.mode == RewardWrapperMode.MAXIMIZE:
+            # bonus if masses very similar
+            coeff += (1-similarity)
         else:
-            coeff += distance
+            # bonus if masses very different
+            coeff += similarity
 
         return coeff*reward
