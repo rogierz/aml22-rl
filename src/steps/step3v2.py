@@ -68,7 +68,7 @@ def objective_fn(trial, logdir='.'):
     model.learn(total_timesteps=int(1e5), progress_bar=True,
                 tb_log_name=f"SAC_training_UDR")
 
-    model.save(os.path.join("trained_models", f"step3_trial_{trial.number}"))
+    model.save(os.path.join("trained_models", f"step3v2_trial_{trial.number}"))
 
     n_episodes = 50
 
