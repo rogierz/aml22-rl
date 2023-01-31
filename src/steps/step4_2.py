@@ -25,7 +25,7 @@ class CustomWrapper(gym.ObservationWrapper):
 
 class LSTM(BaseFeaturesExtractor):
     
-    def __init__(self,  observation_space: spaces.Box, features_dim: int = 256, embed_dim = 64, hidden_size = 64, num_layers = 1):
+    def __init__(self,  observation_space: spaces.Box, features_dim: int = 256, embed_dim = 512, hidden_size = 512, num_layers = 1):
           super().__init__(observation_space, features_dim)
           self.DEVICE = "cuda"
 
@@ -52,6 +52,7 @@ class LSTM(BaseFeaturesExtractor):
     def forward(self, x):      
           print("\n INPUT TO THE NET: ", x.shape)
           x = x.permute(0, 1, 4, 2, 3)
+          print("\n AFTER RESHAPING: ", x.shape)
           batch_size, img_size = x.shape[0], x.shape[2:]
           x = x.reshape(-1, *img_size) # i merge the batch_size and num_seq in order to feed everything to the cnn
 
