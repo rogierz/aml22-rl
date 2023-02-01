@@ -66,9 +66,10 @@ class LSTM(BaseFeaturesExtractor):
         x = x.reshape(batch_size, -1, self.embed_dim) # then i comeback the original shape
         print("RESHAPING.. INPUT TO LSTM: ", x.shape)  
         # lstm part
-        h_0 = th.autograd.Variable(th.randn(self.num_layers, x.size(0), self.hidden_size))
-        
-        c_0 = th.autograd.Variable(th.randn(self.num_layers, x.size(0), self.hidden_size))
+        h_0 = th.autograd.Variable(th.randn(self.num_layers, x.size(0), self.hidden_size)).to(self.DEVICE)
+        print("h0")
+        c_0 = th.autograd.Variable(th.randn(self.num_layers, x.size(0), self.hidden_size)).to(self.DEVICE)
+        print("\n c0")
         y, (hn, cn) = self.lstm_cell(x, (h_0, c_0))
         # print("\n LSTM OUTPUT SHAPE: ", y.shape)          
         y = y[:, -1, :]
