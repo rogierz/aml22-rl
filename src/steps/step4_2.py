@@ -6,11 +6,14 @@ from gym import spaces
 from gym.spaces import Box
 from gym.wrappers.pixel_observation import PixelObservationWrapper
 from gym.wrappers.resize_observation import ResizeObservation
+from gym.wrappers.gray_scale_observation import GrayScaleObservation
 from gym.wrappers.frame_stack import FrameStack
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 from stable_baselines3 import SAC
 from torchvision.models import resnet18
 from stable_baselines3.common.logger import configure
+from stable_baselines3.common.vec_env.vec_frame_stack import VecFrameStack
+from stable_baselines3.common.vec_env.dummy_vec_env import DummyVecEnv
 from datetime import datetime
 import os
 import shutil
@@ -85,41 +88,33 @@ class ResNet(BaseFeaturesExtractor):
         This corresponds to the number of unit for the last layer.
     """
 
-    def __init__(self, observation_space: spaces.Box, features_dim: int = 256):
+    def __init__(self, observation_space: spaces.Box, features_dim: int = 512):
         super().__init__(observation_space, features_dim)
 
         self.backbone = resnet18()#weights='IMAGENET1K_V1')
         # stem adjustment 
-        self.backbone.conv1 = nn.Conv2d(3, 64, 3, 1, 1, bias=False)
+        self.backbone.conv1 = nn.Conv2d(4, 64, 3, 1, 1, bias=False)
         self.backbone.maxpool = nn.Identity()
         # only feature maps
         self.backbone.fc = nn.Identity()
 
-        self.proj_head = nn.Sequential( # Projection head
-        nn.Linear(512, 256),
-        nn.ReLU()
-        )
-
     def forward(self, observations: th.Tensor) -> th.Tensor:
-        print("INPUT SHAPE: ", observations.shape)
+        return self.backbone(observations)
 
-        x = self.backbone(x)
-        x = self.proj_head(x)
-        print("OUTPUT SHAPE: ", x.shape)
-        return x
-
+def createGrayScale():
+    return GrayScaleObservation(ResizeObservation(CustomWrapper(
+              PixelObservationWrapper(gym.make(f"CustomHopper-UDR-source-v0"))), shape=(128, 128)), keep_dim=True)
 
 def main(base_prefix=".", force=False):
 
     logdir = f"{base_prefix}/sac_tb_step4_2_log"
 
-
-    policy_kwargs = dict(features_extractor_class=LSTM)
+    # policy_kwargs = dict(features_extractor_class = ResNet)
 
     sac_params = {
             "learning_rate": 2e-3,
             "gamma": 0.99,
-            "batch_size": 64
+            "batch_size": 128
     }
 
     if os.path.isdir("logdir"):
@@ -132,25 +127,36 @@ def main(base_prefix=".", force=False):
             print(f"Directory {logdir} already exists. Shutting down...")
             return
     
-    env = gym.make(f"CustomHopper-UDR-source-v0")
-    env = ResizeObservation(CustomWrapper(
-                PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(128, 128))
+    # env = gym.make(f"CustomHopper-UDR-source-v0")
+    # env = ResizeObservation(CustomWrapper(
+    #           PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(128, 128))
 
-    env = FrameStack(env, 4)
+    # env = FrameStack(env, 4)
 
-    env_source = ResizeObservation(CustomWrapper(
-                PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(128, 128))
-    env_target =  ResizeObservation(CustomWrapper(
-                PixelObservationWrapper(gym.make(f"CustomHopper-target-v0"))), shape=(128, 128))
+    # env_source = ResizeObservation(CustomWrapper(
+    #             PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(128, 128))
+    # env_target =  ResizeObservation(CustomWrapper(
+    #             PixelObservationWrapper(gym.make(f"CustomHopper-target-v0"))), shape=(128, 128))
 
-    env_source = FrameStack(env_source, 4)
-    env_target = FrameStack(env_target, 4)
-
+    # env_source = FrameStack(env_source, 4)
+    # env_target = FrameStack(env_target, 4)
+    #env = GrayScaleObservation(env, keep_dim=True)
+    #print("\n OBSERVATION SPACE GRAYSCALE:", env.observation_space.shape)
+ 
+    env = VecFrameStack(DummyVecEnv([lambda: GrayScaleObservation(ResizeObservation(CustomWrapper(
+            PixelObservationWrapper(gym.make(f"CustomHopper-UDR-source-v0"))), shape=(128, 128)), keep_dim=True)]), 4, "last")
+    
+    env_source = VecFrameStack(DummyVecEnv([lambda: GrayScaleObservation(ResizeObservation(CustomWrapper(
+            PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(128, 128)), keep_dim=True)]), 4, "last")
+    
+    env_target = VecFrameStack(DummyVecEnv([lambda: GrayScaleObservation(ResizeObservation(CustomWrapper(
+            PixelObservationWrapper(gym.make(f"CustomHopper-target-v0"))), shape=(128, 128)), keep_dim=True)]), 4, "last")
+    
     logger = configure(logdir, ["stdout", "tensorboard"])
 
-    model = SAC("CnnPolicy", env, **sac_params, policy_kwargs=policy_kwargs, seed=42, buffer_size=5000)
+    model = SAC("CnnPolicy", env, **sac_params, seed=42, buffer_size=10000) #for resNet: add policy_kwargs=policy_kwargs as parameter
     
-    model.learn(total_timesteps=1000, progress_bar=True)
+    model.learn(total_timesteps=250000, progress_bar=True)
 
     if os.path.isfile(os.path.join("trained_models", "step4_2.zip")):
         fname = datetime.now().strftime("%Y%m%d_%H%M%S")
