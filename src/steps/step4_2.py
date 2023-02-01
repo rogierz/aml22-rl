@@ -26,28 +26,33 @@ class CustomWrapper(gym.ObservationWrapper):
 class LSTM(BaseFeaturesExtractor):
     
     def __init__(self,  observation_space: spaces.Box, features_dim: int = 128, embed_dim = 128, hidden_size = 128, num_layers = 1):
-          super().__init__(observation_space, features_dim)
-          self.DEVICE = "cuda"
+        super().__init__(observation_space, features_dim)
+        self.DEVICE = "cuda"
 
-          self.embed_dim = embed_dim
-          self.hidden_size = hidden_size
-          self.num_layers = num_layers
+        self.embed_dim = embed_dim
+        self.hidden_size = hidden_size
+        self.num_layers = num_layers
 
-          # ------ Backbone
-          self.backbone = resnet18(weights='DEFAULT') #models.ssdlite320_mobilenet_v3_large(weights="DEFAULT") 
-          # stem adjustment
-          self.backbone.conv1 = nn.Conv2d(3, 64, 3, 1, 1, bias=False)
-          # only feature maps
-          self.backbone.fc = nn.Identity()
-          
-          self.proj_embedding = nn.Sequential( # Projection head
-           nn.Linear(512, 128),
-           nn.ReLU()
-          )
-          # ------ LSTM
-          self.lstm_cell = nn.LSTM(128, 128, num_layers=num_layers, batch_first=True)
-          self.backbone.train(False)
-          self.backbone.train(True)
+        # ------ Backbone
+        self.backbone = resnet18(weights='DEFAULT') #models.ssdlite320_mobilenet_v3_large(weights="DEFAULT") 
+        # stem adjustment
+        self.backbone.conv1 = nn.Conv2d(3, 64, 3, 1, 1, bias=False)
+        # only feature maps
+        self.backbone.fc = nn.Identity()
+        
+        self.proj_embedding = nn.Sequential( # Projection head
+        nn.Linear(512, 128),
+        nn.ReLU()
+        )
+        # ------ LSTM
+        self.lstm_cell = nn.LSTM(128, 128, num_layers=num_layers, batch_first=True)
+        self.backbone.train(False)
+        self.lstm_cell.train(True)
+
+        self.h_0 = th.autograd.Variable(th.randn(self.num_layers, x.size(0), self.hidden_size)).to(self.DEVICE)
+        self.c_0 = th.autograd.Variable(th.randn(self.num_layers, x.size(0), self.hidden_size)).to(self.DEVICE)
+         
+        
 
     def forward(self, x):      
           print("\n INPUT TO THE NET: ", x.shape)
@@ -66,9 +71,8 @@ class LSTM(BaseFeaturesExtractor):
           x = x.reshape(batch_size, -1, self.embed_dim) # then i comeback the original shape
           print("RESHAPING.. INPUT TO LSTM: ", x.shape)  
           # lstm part
-          h_0 = th.autograd.Variable(th.randn(self.num_layers, x.size(0), self.hidden_size)).to(self.DEVICE)
-          c_0 = th.autograd.Variable(th.randn(self.num_layers, x.size(0), self.hidden_size)).to(self.DEVICE)
-          y, (hn, cn) = self.lstm_cell(x, (h_0, c_0))
+         
+          y, (hn, cn) = self.lstm_cell(x, (self.h_0, self.c_0))
           # print("\n LSTM OUTPUT SHAPE: ", y.shape)          
           y = y[:, -1, :]
 
