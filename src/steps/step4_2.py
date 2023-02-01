@@ -132,11 +132,9 @@ def main(base_prefix=".", force=False):
     
     env = gym.make(f"CustomHopper-UDR-source-v0")
     env = ResizeObservation(CustomWrapper(
-                PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(224, 224))
+                PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(128, 128))
 
     env = FrameStack(env, 4)
-
-    print("Observation space: ", env.observation_space)
 
     env_source = ResizeObservation(CustomWrapper(
                 PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(128, 128))
@@ -148,7 +146,7 @@ def main(base_prefix=".", force=False):
 
     logger = configure(logdir, ["stdout", "tensorboard"])
 
-    model = SAC("CnnPolicy", env, **sac_params, policy_kwargs=policy_kwargs, seed=42, buffer_size=500)
+    model = SAC("CnnPolicy", env, **sac_params, policy_kwargs=policy_kwargs, seed=42, buffer_size=10000)
     
     model.learn(total_timesteps=1000, progress_bar=True)
 
