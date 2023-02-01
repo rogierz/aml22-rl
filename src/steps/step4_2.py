@@ -52,31 +52,29 @@ class LSTM(BaseFeaturesExtractor):
         self.lstm_cell.train(True)
 
     def forward(self, x):      
-        print("\n INPUT TO THE NET: ", x.shape)
+        # print("\n INPUT TO THE NET: ", x.shape)
         x = x.permute(0, 1, 4, 2, 3)
-        print("\n AFTER RESHAPING: ", x.shape)
+        # print("\n AFTER RESHAPING: ", x.shape)
         batch_size, img_size = x.shape[0], x.shape[2:]
         x = x.reshape(-1, *img_size) # i merge the batch_size and num_seq in order to feed everything to the cnn
 
         # print("\n INPUT TO THE BACKBONE SHAPE: ", x.shape)
         x = self.backbone(x)
-        print("\n OUTPUT OF BACKBONE: ", x.shape)
+        # print("\n OUTPUT OF BACKBONE: ", x.shape)
 
         x = self.proj_embedding(x)
-        print("OUTPUT OF PROJECTION LAYER: ", x.shape)
+        # print("OUTPUT OF PROJECTION LAYER: ", x.shape)
 
         x = x.reshape(batch_size, -1, self.embed_dim) # then i comeback the original shape
-        print("RESHAPING.. INPUT TO LSTM: ", x.shape)  
+        # print("RESHAPING.. INPUT TO LSTM: ", x.shape)  
         # lstm part
         h_0 = th.autograd.Variable(th.randn(self.num_layers, x.size(0), self.hidden_size)).to(self.DEVICE)
-        print("h0")
         c_0 = th.autograd.Variable(th.randn(self.num_layers, x.size(0), self.hidden_size)).to(self.DEVICE)
-        print("\n c0")
         y, (hn, cn) = self.lstm_cell(x, (h_0, c_0))
         # print("\n LSTM OUTPUT SHAPE: ", y.shape)          
         y = y[:, -1, :]
 
-        print("\n FINAL OUTPUT SHAPE: ", y.shape)
+        # print("\n FINAL OUTPUT SHAPE: ", y.shape)
         return y
 
 #ResNet18 with some adjustments 
@@ -87,12 +85,12 @@ class ResNet(BaseFeaturesExtractor):
         This corresponds to the number of unit for the last layer.
     """
 
-    def __init__(self, observation_space: spaces.Box, features_dim: int = 512):
+    def __init__(self, observation_space: spaces.Box, features_dim: int = 512, n_frames = 4):
         super().__init__(observation_space, features_dim)
 
         self.backbone = resnet18()#weights='IMAGENET1K_V1')
         # stem adjustment 
-        self.backbone.conv1 = nn.Conv2d(4, 64, 3, 1, 1, bias=False)
+        self.backbone.conv1 = nn.Conv2d(n_frames, 64, 3, 1, 1, bias=False)
         self.backbone.maxpool = nn.Identity()
         # only feature maps
         self.backbone.fc = nn.Identity()
