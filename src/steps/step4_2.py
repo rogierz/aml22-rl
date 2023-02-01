@@ -7,7 +7,6 @@ from gym.spaces import Box
 from gym.wrappers.pixel_observation import PixelObservationWrapper
 from gym.wrappers.resize_observation import ResizeObservation
 from gym.wrappers.gray_scale_observation import GrayScaleObservation
-from gym.wrappers.frame_stack import FrameStack
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 from stable_baselines3 import SAC
 from torchvision.models import resnet18
@@ -100,10 +99,6 @@ class ResNet(BaseFeaturesExtractor):
 
     def forward(self, observations: th.Tensor) -> th.Tensor:
         return self.backbone(observations)
-
-def createGrayScale():
-    return GrayScaleObservation(ResizeObservation(CustomWrapper(
-              PixelObservationWrapper(gym.make(f"CustomHopper-UDR-source-v0"))), shape=(128, 128)), keep_dim=True)
 
 def main(base_prefix=".", force=False):
 
