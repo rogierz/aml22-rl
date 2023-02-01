@@ -146,7 +146,7 @@ def main(base_prefix=".", force=False):
 
     logger = configure(logdir, ["stdout", "tensorboard"])
 
-    model = SAC("CnnPolicy", env, **sac_params, policy_kwargs=policy_kwargs, seed=42, buffer_size=10000)
+    model = SAC("CnnPolicy", env, **sac_params, policy_kwargs=policy_kwargs, seed=42, buffer_size=5000)
     
     model.learn(total_timesteps=1000, progress_bar=True)
 
