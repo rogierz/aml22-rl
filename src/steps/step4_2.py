@@ -25,7 +25,7 @@ class CustomWrapper(gym.ObservationWrapper):
 
 class LSTM(BaseFeaturesExtractor):
     
-    def __init__(self,  observation_space: spaces.Box, features_dim: int = 512, embed_dim = 128, hidden_size = 128, num_layers = 1):
+    def __init__(self,  observation_space: spaces.Box, features_dim: int = 128, embed_dim = 128, hidden_size = 128, num_layers = 1):
           super().__init__(observation_space, features_dim)
           self.DEVICE = "cuda"
 
