@@ -25,7 +25,7 @@ class CustomWrapper(gym.ObservationWrapper):
 
 class LSTM(BaseFeaturesExtractor):
     
-    def __init__(self,  observation_space: spaces.Box, features_dim: int = 512, embed_dim = 512, hidden_size = 512, num_layers = 1):
+    def __init__(self,  observation_space: spaces.Box, features_dim: int = 512, embed_dim = 128, hidden_size = 128, num_layers = 1):
           super().__init__(observation_space, features_dim)
           self.DEVICE = "cuda"
 
@@ -40,12 +40,12 @@ class LSTM(BaseFeaturesExtractor):
           # only feature maps
           self.backbone.fc = nn.Identity()
           
-          #self.proj_embedding = nn.Sequential( # Projection head
-          #  nn.Linear(512, embed_dim),
-          #  nn.ReLU()
-          #)
+          self.proj_embedding = nn.Sequential( # Projection head
+           nn.Linear(512, 128),
+           nn.ReLU()
+          )
           # ------ LSTM
-          self.lstm_cell = nn.LSTM(512, 512, num_layers=num_layers, batch_first=True)
+          self.lstm_cell = nn.LSTM(128, 128, num_layers=num_layers, batch_first=True)
           self.backbone.train(False)
           self.backbone.train(True)
 
