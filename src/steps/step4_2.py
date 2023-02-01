@@ -49,34 +49,32 @@ class LSTM(BaseFeaturesExtractor):
         self.backbone.train(False)
         self.lstm_cell.train(True)
 
-        self.h_0 = th.autograd.Variable(th.randn(self.num_layers, 4, self.hidden_size)).to(self.DEVICE)
-        self.c_0 = th.autograd.Variable(th.randn(self.num_layers, 4, self.hidden_size)).to(self.DEVICE)
-         
-        
     def forward(self, x):      
-          print("\n INPUT TO THE NET: ", x.shape)
-          x = x.permute(0, 1, 4, 2, 3)
-          print("\n AFTER RESHAPING: ", x.shape)
-          batch_size, img_size = x.shape[0], x.shape[2:]
-          x = x.reshape(-1, *img_size) # i merge the batch_size and num_seq in order to feed everything to the cnn
+        print("\n INPUT TO THE NET: ", x.shape)
+        x = x.permute(0, 1, 4, 2, 3)
+        print("\n AFTER RESHAPING: ", x.shape)
+        batch_size, img_size = x.shape[0], x.shape[2:]
+        x = x.reshape(-1, *img_size) # i merge the batch_size and num_seq in order to feed everything to the cnn
 
-          # print("\n INPUT TO THE BACKBONE SHAPE: ", x.shape)
-          x = self.backbone(x)
-          print("\n OUTPUT OF BACKBONE: ", x.shape)
+        # print("\n INPUT TO THE BACKBONE SHAPE: ", x.shape)
+        x = self.backbone(x)
+        print("\n OUTPUT OF BACKBONE: ", x.shape)
 
-          x = self.proj_embedding(x)
-          print("OUTPUT OF PROJECTION LAYER: ", x.shape)
+        x = self.proj_embedding(x)
+        print("OUTPUT OF PROJECTION LAYER: ", x.shape)
 
-          x = x.reshape(batch_size, -1, self.embed_dim) # then i comeback the original shape
-          print("RESHAPING.. INPUT TO LSTM: ", x.shape)  
-          # lstm part
-         
-          y, (hn, cn) = self.lstm_cell(x, (self.h_0, self.c_0))
-          # print("\n LSTM OUTPUT SHAPE: ", y.shape)          
-          y = y[:, -1, :]
+        x = x.reshape(batch_size, -1, self.embed_dim) # then i comeback the original shape
+        print("RESHAPING.. INPUT TO LSTM: ", x.shape)  
+        # lstm part
+        h_0 = th.autograd.Variable(th.randn(self.num_layers, x.size(0), self.hidden_size))
+        
+        c_0 = th.autograd.Variable(th.randn(self.num_layers, x.size(0), self.hidden_size))
+        y, (hn, cn) = self.lstm_cell(x, (h_0, c_0))
+        # print("\n LSTM OUTPUT SHAPE: ", y.shape)          
+        y = y[:, -1, :]
 
-          print("\n FINAL OUTPUT SHAPE: ", y.shape)
-          return y
+        print("\n FINAL OUTPUT SHAPE: ", y.shape)
+        return y
 
 #ResNet18 with some adjustments 
 class ResNet(BaseFeaturesExtractor):
