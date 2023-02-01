@@ -49,11 +49,10 @@ class LSTM(BaseFeaturesExtractor):
         self.backbone.train(False)
         self.lstm_cell.train(True)
 
-        self.h_0 = th.autograd.Variable(th.randn(self.num_layers, x.size(0), self.hidden_size)).to(self.DEVICE)
-        self.c_0 = th.autograd.Variable(th.randn(self.num_layers, x.size(0), self.hidden_size)).to(self.DEVICE)
+        self.h_0 = th.autograd.Variable(th.randn(self.num_layers, 4, self.hidden_size)).to(self.DEVICE)
+        self.c_0 = th.autograd.Variable(th.randn(self.num_layers, 4, self.hidden_size)).to(self.DEVICE)
          
         
-
     def forward(self, x):      
           print("\n INPUT TO THE NET: ", x.shape)
           x = x.permute(0, 1, 4, 2, 3)
