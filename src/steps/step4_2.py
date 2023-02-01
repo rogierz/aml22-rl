@@ -70,7 +70,7 @@ class LSTM(BaseFeaturesExtractor):
           # print("\n LSTM OUTPUT SHAPE: ", y.shape)          
           y = y[:, -1, :]
 
-          # print("\n FINAL OUTPUT SHAPE: ", y.shape)
+          print("\n FINAL OUTPUT SHAPE: ", y.shape)
           return y
 
 #ResNet18 with some adjustments 
