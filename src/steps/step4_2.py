@@ -58,10 +58,12 @@ class LSTM(BaseFeaturesExtractor):
 
           # print("\n INPUT TO THE BACKBONE SHAPE: ", x.shape)
           x = self.backbone(x)
-
           print("\n OUTPUT OF BACKBONE: ", x.shape)
+
+          x = self.proj_embedding(x)
+          print("OUTPUT OF PROJECTION LAYER: ", x.shape)
+
           x = x.reshape(batch_size, -1, self.embed_dim) # then i comeback the original shape
-        
           print("RESHAPING.. INPUT TO LSTM: ", x.shape)  
           # lstm part
           h_0 = th.autograd.Variable(th.randn(self.num_layers, x.size(0), self.hidden_size)).to(self.DEVICE)
