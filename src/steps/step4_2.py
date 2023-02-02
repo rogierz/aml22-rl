@@ -14,6 +14,7 @@ from stable_baselines3.common.logger import configure
 from stable_baselines3.common.vec_env.vec_frame_stack import VecFrameStack
 from stable_baselines3.common.vec_env.dummy_vec_env import DummyVecEnv
 from datetime import datetime
+from enum import Enum
 import os
 import shutil
 
@@ -43,11 +44,11 @@ class LSTM(BaseFeaturesExtractor):
         self.backbone.fc = nn.Identity()
         
         self.proj_embedding = nn.Sequential( # Projection head
-        nn.Linear(512, 128),
+        nn.Linear(512, embed_dim),
         nn.ReLU()
         )
         # ------ LSTM
-        self.lstm_cell = nn.LSTM(128, 128, num_layers=num_layers, batch_first=True)
+        self.lstm_cell = nn.LSTM(embed_dim, hidden_size, num_layers=num_layers, batch_first=True)
         self.backbone.train(False)
         self.lstm_cell.train(True)
 
@@ -85,10 +86,11 @@ class ResNet(BaseFeaturesExtractor):
         This corresponds to the number of unit for the last layer.
     """
 
-    def __init__(self, observation_space: spaces.Box, features_dim: int = 512, n_frames = 4):
+    def __init__(self, observation_space: spaces.Box, features_dim: int = 512, n_frames = 4, pre_train = False):
         super().__init__(observation_space, features_dim)
-
-        self.backbone = resnet18()#weights='IMAGENET1K_V1')
+        
+        
+        self.backbone = resnet18(weights='IMAGENET1K_V1') if pre_train else resnet18() #weights='IMAGENET1K_V1')
         # stem adjustment 
         self.backbone.conv1 = nn.Conv2d(n_frames, 64, 3, 1, 1, bias=False)
         self.backbone.maxpool = nn.Identity()
@@ -98,85 +100,100 @@ class ResNet(BaseFeaturesExtractor):
     def forward(self, observations: th.Tensor) -> th.Tensor:
         return self.backbone(observations)
 
+class Variant(Enum):
+    NATURECNN = 0
+    RESNET = 1
+    RESNET_PRETRAIN = 2
+
 def main(base_prefix=".", force=False):
+    for variant in list(Variant):
+        print(f"Running variant {variant.name}...")
+        logdir = f"{base_prefix}/sac_tb_step4_2_{variant.value}_log"
+        
+        policy_kwargs = dict(features_extractor_class = ResNet)
 
-    logdir = f"{base_prefix}/sac_tb_step4_2_log"
+        sac_params = {
+                "learning_rate": 2e-3,
+                "gamma": 0.99,
+                "batch_size": 128
+        }
 
-    # policy_kwargs = dict(features_extractor_class = ResNet)
+        if os.path.isdir(logdir):
+            if force:
+                try:
+                    shutil.rmtree(logdir)
+                except Exception as e:
+                    print(e)
+            else:
+                print(f"Directory {logdir} already exists. Shutting down...")
+                return
+        
+        # env = gym.make(f"CustomHopper-UDR-source-v0")
+        # env = ResizeObservation(CustomWrapper(
+        #           PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(128, 128))
 
-    sac_params = {
-            "learning_rate": 2e-3,
-            "gamma": 0.99,
-            "batch_size": 128
-    }
+        # env = FrameStack(env, 4)
 
-    if os.path.isdir("logdir"):
-        if force:
-            try:
-                shutil.rmtree(logdir)
-            except Exception as e:
-                print(e)
+        # env_source = ResizeObservation(CustomWrapper(
+        #             PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(128, 128))
+        # env_target =  ResizeObservation(CustomWrapper(
+        #             PixelObservationWrapper(gym.make(f"CustomHopper-target-v0"))), shape=(128, 128))
+
+        # env_source = FrameStack(env_source, 4)
+        # env_target = FrameStack(env_target, 4)
+        #env = GrayScaleObservation(env, keep_dim=True)
+        #print("\n OBSERVATION SPACE GRAYSCALE:", env.observation_space.shape)
+    
+        env = VecFrameStack(DummyVecEnv([lambda: GrayScaleObservation(ResizeObservation(CustomWrapper(
+                PixelObservationWrapper(gym.make(f"CustomHopper-UDR-source-v0"))), shape=(128, 128)), keep_dim=True)]), 4, "last")
+        
+        env_source = VecFrameStack(DummyVecEnv([lambda: GrayScaleObservation(ResizeObservation(CustomWrapper(
+                PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(128, 128)), keep_dim=True)]), 4, "last")
+        
+        env_target = VecFrameStack(DummyVecEnv([lambda: GrayScaleObservation(ResizeObservation(CustomWrapper(
+                PixelObservationWrapper(gym.make(f"CustomHopper-target-v0"))), shape=(128, 128)), keep_dim=True)]), 4, "last")
+        
+        logger = configure(logdir, ["tensorboard"])
+
+        if variant == Variant.NATURECNN:
+            model = SAC("CnnPolicy", env, **sac_params, seed=42, buffer_size=10000)
+        elif variant == Variant.RESNET:
+            policy_kwargs = dict(features_extractor_class = ResNet)
+            model = SAC("CnnPolicy", env, **sac_params, policy_kwargs=policy_kwargs, seed=42, buffer_size=10000) #for resNet: add policy_kwargs=policy_kwargs as parameter
         else:
-            print(f"Directory {logdir} already exists. Shutting down...")
-            return
-    
-    # env = gym.make(f"CustomHopper-UDR-source-v0")
-    # env = ResizeObservation(CustomWrapper(
-    #           PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(128, 128))
+            policy_kwargs = dict(features_extractor_class = ResNet, features_extractor_kwargs = {"pre_train": True})
+            model = SAC("CnnPolicy", env, **sac_params, policy_kwargs=policy_kwargs, seed=42, buffer_size=10000)
 
-    # env = FrameStack(env, 4)
+        model.set_logger(logger)
+        
+        model.learn(total_timesteps=250000, progress_bar=True, tb_log_name=f"SAC_training_frameStack_{variant.name}")
+        
+        if os.path.isfile(os.path.join("trained_models", f"step4_2_{variant.name}.zip")):
+            fname = datetime.now().strftime("%Y%m%d_%H%M%S")
+            print(fname)
+            model.save(os.path.join("trained_models", f"step4_2_{variant.name}_{fname}"))
+        else:
+            model.save(os.path.join("trained_models", f"step4_2_{variant.name}"))
 
-    # env_source = ResizeObservation(CustomWrapper(
-    #             PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(128, 128))
-    # env_target =  ResizeObservation(CustomWrapper(
-    #             PixelObservationWrapper(gym.make(f"CustomHopper-target-v0"))), shape=(128, 128))
+        n_episodes = 50
 
-    # env_source = FrameStack(env_source, 4)
-    # env_target = FrameStack(env_target, 4)
-    #env = GrayScaleObservation(env, keep_dim=True)
-    #print("\n OBSERVATION SPACE GRAYSCALE:", env.observation_space.shape)
- 
-    env = VecFrameStack(DummyVecEnv([lambda: GrayScaleObservation(ResizeObservation(CustomWrapper(
-            PixelObservationWrapper(gym.make(f"CustomHopper-UDR-source-v0"))), shape=(128, 128)), keep_dim=True)]), 4, "last")
-    
-    env_source = VecFrameStack(DummyVecEnv([lambda: GrayScaleObservation(ResizeObservation(CustomWrapper(
-            PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(128, 128)), keep_dim=True)]), 4, "last")
-    
-    env_target = VecFrameStack(DummyVecEnv([lambda: GrayScaleObservation(ResizeObservation(CustomWrapper(
-            PixelObservationWrapper(gym.make(f"CustomHopper-target-v0"))), shape=(128, 128)), keep_dim=True)]), 4, "last")
-    
-    logger = configure(logdir, ["stdout", "tensorboard"])
+        for env_name, test_env in [("source", env_source), ("target", env_target)]:
+            run_avg_return = 0
+            for ep in range(n_episodes):
+                done = False
+                n_steps = 0
+                obs = test_env.reset()
+                episode_return = 0
 
-    model = SAC("CnnPolicy", env, **sac_params, seed=42, buffer_size=10000) #for resNet: add policy_kwargs=policy_kwargs as parameter
-    
-    model.learn(total_timesteps=250000, progress_bar=True)
+                while not done:  # Until the episode is over
+                    action, _ = model.predict(obs, deterministic=True)
+                    obs, reward, done, info = test_env.step(action)
+                    n_steps += 1
+                    episode_return += reward
 
-    if os.path.isfile(os.path.join("trained_models", "step4_2.zip")):
-        fname = datetime.now().strftime("%Y%m%d_%H%M%S")
-        print(fname)
-        model.save(os.path.join("trained_models", f"step4_2_{fname}"))
-    else:
-        model.save(os.path.join("trained_models", "step4_2"))
-
-    n_episodes = 50
-
-    for env_name, test_env in [("source", env_source), ("target", env_target)]:
-        run_avg_return = 0
-        for ep in range(n_episodes):
-            done = False
-            n_steps = 0
-            obs = test_env.reset()
-            episode_return = 0
-
-            while not done:  # Until the episode is over
-                action, _ = model.predict(obs, deterministic=True)
-                obs, reward, done, info = test_env.step(action)
-                n_steps += 1
-                episode_return += reward
-
-            logger.record(f'episode_return/{env_name}', episode_return)
-            logger.dump(ep)
-            run_avg_return += episode_return
-        run_avg_return /= n_episodes
-        logger.record(f'run_avg_return/{env_name}', run_avg_return)
-        logger.dump()
+                logger.record(f'episode_return/{env_name}', episode_return)
+                logger.dump(ep)
+                run_avg_return += episode_return
+            run_avg_return /= n_episodes
+            logger.record(f'run_avg_return/{env_name}', run_avg_return)
+            logger.dump()
