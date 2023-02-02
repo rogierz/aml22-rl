@@ -31,7 +31,7 @@ def main(base_prefix=".", force=False, variant=None):
         sac_params = {
             "learning_rate": 2e-3,
             "gamma": 0.99,
-            "batch_size": 128
+            "batch_size": 16
         }
 
         if os.path.isdir(logdir):
