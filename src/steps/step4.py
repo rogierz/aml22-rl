@@ -6,15 +6,15 @@ leaving room for variants and group's own implementations.
 """
 import os
 import shutil
+from datetime import datetime
 
-from gym.spaces import Box
 from gym.wrappers.pixel_observation import PixelObservationWrapper
 from gym.wrappers.resize_observation import ResizeObservation
 from stable_baselines3 import SAC
 from stable_baselines3.common.logger import configure
-from ..utils.wrapper import CustomWrapper
+
 from model.env.custom_hopper import *
-from datetime import datetime
+from ..utils.wrapper import CustomWrapper
 
 
 def main(base_prefix=".", force=False):

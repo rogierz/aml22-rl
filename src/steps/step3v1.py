@@ -5,13 +5,14 @@ episodes.
 """
 import os
 import shutil
-import optuna
+from functools import partial
 
+import optuna
 from stable_baselines3 import SAC
 from stable_baselines3.common.logger import configure, HParam
+
 from model.env.custom_hopper import *
 from src.utils.lr_schedules import LR_SCHEDULES
-from functools import partial
 
 
 def sample_sac_params(trial):

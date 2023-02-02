@@ -1,22 +1,23 @@
-import torch
-import torch as th
-from torch import nn
-import gym
-import numpy as np
-from gym import spaces
-from gym.spaces import Box
-from gym.wrappers.pixel_observation import PixelObservationWrapper
-from gym.wrappers.resize_observation import ResizeObservation
-from gym.wrappers.gray_scale_observation import GrayScaleObservation
-from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
-from stable_baselines3 import SAC
-from torchvision.models import resnet18
-from stable_baselines3.common.logger import configure
-from gym.wrappers.frame_stack import FrameStack
-from datetime import datetime
-from enum import Enum
 import os
 import shutil
+from datetime import datetime
+from enum import Enum
+
+import gym
+import numpy as np
+import torch as th
+from gym import spaces
+from gym.spaces import Box
+from gym.wrappers.frame_stack import FrameStack
+from gym.wrappers.gray_scale_observation import GrayScaleObservation
+from gym.wrappers.pixel_observation import PixelObservationWrapper
+from gym.wrappers.resize_observation import ResizeObservation
+from stable_baselines3 import SAC
+from stable_baselines3.common.callbacks import StopTrainingOnMaxEpisodes
+from stable_baselines3.common.logger import configure
+from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
+from torch import nn
+from torchvision.models import resnet18
 
 
 class CustomWrapper(gym.ObservationWrapper):
@@ -169,8 +170,9 @@ def main(base_prefix=".", force=False):
             model = SAC("CnnPolicy", env, **sac_params, policy_kwargs=policy_kwargs, seed=42, buffer_size=10000)
 
         model.set_logger(logger)
-        
-        model.learn(total_timesteps=500, progress_bar=True, tb_log_name=f"SAC_training_frameStack_{variant.name}")
+        callback_max_episodes = StopTrainingOnMaxEpisodes(max_episodes=10, verbose=1)
+        model.learn(total_timesteps=int(1e10), progress_bar=True, tb_log_name=f"SAC_training_frameStack_{variant.name}",
+                    callback=callback_max_episodes)
         
         if os.path.isfile(os.path.join("trained_models", f"step4_2_{variant.name}.zip")):
             fname = datetime.now().strftime("%Y%m%d_%H%M%S")

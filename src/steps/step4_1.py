@@ -15,7 +15,6 @@ the guidelines and get a feeling of a research-like approach.
 
 The following variant 
 """
-from model.env.custom_hopper import *
 import os
 import shutil
 
@@ -23,6 +22,8 @@ from gym.wrappers.pixel_observation import PixelObservationWrapper
 from gym.wrappers.resize_observation import ResizeObservation
 from stable_baselines3 import SAC
 from stable_baselines3.common.logger import configure
+
+from model.env.custom_hopper import *
 from ..utils.wrapper import CustomWrapper, RewardWrapper, RewardWrapperMode
 
 
