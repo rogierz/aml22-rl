@@ -1,15 +1,12 @@
 """Implementation of the Hopper environment supporting
 domain randomization optimization."""
-import csv
-import pdb
-from copy import deepcopy
 
-import numpy as np
 import gym
+import numpy as np
 from gym import utils
-from .mujoco_env import MujocoEnv
 from torch.distributions.uniform import Uniform
-from scipy.stats import truncnorm
+
+from .mujoco_env import MujocoEnv
 
 BODY_PARTS = {'torso': 1, 'thigh': 2, 'leg': 3, 'foot': 4}
 
