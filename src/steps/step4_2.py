@@ -28,8 +28,6 @@ def main(base_prefix=".", force=False, variant=None):
         print(f"Running variant {variant.name}...")
         logdir = f"{base_prefix}/sac_tb_step4_2_{variant.value}_log"
 
-        policy_kwargs = dict(features_extractor_class=ResNet)
-
         sac_params = {
             "learning_rate": 2e-3,
             "gamma": 0.99,
