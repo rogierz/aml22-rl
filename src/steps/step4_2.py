@@ -11,8 +11,7 @@ from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 from stable_baselines3 import SAC
 from torchvision.models import resnet18
 from stable_baselines3.common.logger import configure
-from stable_baselines3.common.vec_env.vec_frame_stack import VecFrameStack
-from stable_baselines3.common.vec_env.dummy_vec_env import DummyVecEnv
+from gym.wrappers.frame_stack import FrameStack
 from datetime import datetime
 from enum import Enum
 import os
@@ -142,17 +141,17 @@ def main(base_prefix=".", force=False):
         # env_source = FrameStack(env_source, 4)
         # env_target = FrameStack(env_target, 4)
         #env = GrayScaleObservation(env, keep_dim=True)
-        #print("\n OBSERVATION SPACE GRAYSCALE:", env.observation_space.shape)
-       
-        env = VecFrameStack(DummyVecEnv([lambda: GrayScaleObservation(ResizeObservation(CustomWrapper(
-                PixelObservationWrapper(gym.make(f"CustomHopper-UDR-source-v0"))), shape=(128, 128)), keep_dim=True)]), 4, "last")
+        #print("\n OBSERVATION SPACE GRAYSCALE:", env.observation_space.), shape=(128, 128)), keep_dim=True), 4, "last")
         
-        env_source = VecFrameStack(DummyVecEnv([lambda: GrayScaleObservation(ResizeObservation(CustomWrapper(
-                PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(128, 128)), keep_dim=True)]), 4, "last")
-        
-        env_target = VecFrameStack(DummyVecEnv([lambda: GrayScaleObservation(ResizeObservation(CustomWrapper(
-                PixelObservationWrapper(gym.make(f"CustomHopper-target-v0"))), shape=(128, 128)), keep_dim=True)]), 4, "last")
-        
+        env = FrameStack(GrayScaleObservation(ResizeObservation(CustomWrapper(
+                PixelObservationWrapper(gym.make(f"CustomHopper-UDR-source-v0"))), shape=(128, 128))), 4)
+
+        env_source = FrameStack(GrayScaleObservation(ResizeObservation(CustomWrapper(
+                PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(128, 128))), 4)
+
+        env_target = FrameStack(GrayScaleObservation(ResizeObservation(CustomWrapper(
+                PixelObservationWrapper(gym.make(f"CustomHopper-target-v0"))), shape=(128, 128))), 4)
+
         logger = configure(logdir, ["stdout", "tensorboard"])
 
         if variant == Variant.NATURECNN:
