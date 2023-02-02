@@ -40,7 +40,7 @@ class MobileNet(BaseFeaturesExtractor):
 
         # weights='IMAGENET1K_V1')
         self.backbone = mobilenet_v3_small(
-            weights='IMAGENET1K_V1') if pre_train else resnet18()
+            weights='IMAGENET1K_V1') if pre_train else mobilenet_v3_small()
         # stem adjustment
         self.backbone.conv1 = nn.Conv2d(n_frames, 64, 3, 1, 1, bias=False)
         # self.backbone.maxpool = nn.Identity()
