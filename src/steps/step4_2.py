@@ -12,7 +12,7 @@ from stable_baselines3.common.logger import configure
 from gym.wrappers.frame_stack import FrameStack
 from datetime import datetime
 from enum import Enum
-from ..networks.resnet import ResNet, MobileNet
+from ..networks.resnet import ResNet, MobileNet, ShuffleNet
 from ..utils.wrapper import CustomWrapper
 
 
@@ -59,7 +59,7 @@ def main(base_prefix=".", force=False, variant=None):
             model = SAC("CnnPolicy", env, **sac_params,
                         seed=42, buffer_size=10000)
         elif variant == Variant.RESNET:
-            policy_kwargs = dict(features_extractor_class=MobileNet)
+            policy_kwargs = dict(features_extractor_class=ShuffleNet)
             # for resNet: add policy_kwargs=policy_kwargs as parameter
             model = SAC("CnnPolicy", env, **sac_params,
                         policy_kwargs=policy_kwargs, seed=42, buffer_size=10000)
