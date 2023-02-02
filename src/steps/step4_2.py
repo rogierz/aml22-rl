@@ -1,126 +1,39 @@
+from functools import partial
 import os
 import shutil
-from datetime import datetime
-from enum import Enum
-
 import gym
 import numpy as np
-import torch as th
-from gym import spaces
-from gym.spaces import Box
-from gym.wrappers.frame_stack import FrameStack
-from gym.wrappers.gray_scale_observation import GrayScaleObservation
+
 from gym.wrappers.pixel_observation import PixelObservationWrapper
 from gym.wrappers.resize_observation import ResizeObservation
+from gym.wrappers.gray_scale_observation import GrayScaleObservation
 from stable_baselines3 import SAC
-from stable_baselines3.common.callbacks import StopTrainingOnMaxEpisodes
 from stable_baselines3.common.logger import configure
-from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
-from torch import nn
-from torchvision.models import resnet18
-
-
-class CustomWrapper(gym.ObservationWrapper):
-    def __init__(self, env):
-        super().__init__(env)
-        self.observation_space = Box(0, 255, shape=(224, 224, 3), dtype=np.uint8)
-
-    def observation(self, obs):
-        return obs["pixels"]
-
-
-class LSTM(BaseFeaturesExtractor):
-    
-    def __init__(self,  observation_space: spaces.Box, features_dim: int = 128, embed_dim = 128, hidden_size = 128, num_layers = 1):
-        super().__init__(observation_space, features_dim)
-        self.DEVICE = "cuda"
-
-        self.embed_dim = embed_dim
-        self.hidden_size = hidden_size
-        self.num_layers = num_layers
-
-        # ------ Backbone
-        self.backbone = resnet18(weights='DEFAULT') #models.ssdlite320_mobilenet_v3_large(weights="DEFAULT") 
-        # stem adjustment
-        self.backbone.conv1 = nn.Conv2d(3, 64, 3, 1, 1, bias=False)
-        # only feature maps
-        self.backbone.fc = nn.Identity()
-        
-        self.proj_embedding = nn.Sequential( # Projection head
-        nn.Linear(512, embed_dim),
-        nn.ReLU()
-        )
-        # ------ LSTM
-        self.lstm_cell = nn.LSTM(embed_dim, hidden_size, num_layers=num_layers, batch_first=True)
-        self.backbone.train(False)
-        self.lstm_cell.train(True)
-
-    def forward(self, x):      
-        # print("\n INPUT TO THE NET: ", x.shape)
-        x = x.permute(0, 1, 4, 2, 3)
-        # print("\n AFTER RESHAPING: ", x.shape)
-        batch_size, img_size = x.shape[0], x.shape[2:]
-        x = x.reshape(-1, *img_size) # i merge the batch_size and num_seq in order to feed everything to the cnn
-
-        # print("\n INPUT TO THE BACKBONE SHAPE: ", x.shape)
-        x = self.backbone(x)
-        # print("\n OUTPUT OF BACKBONE: ", x.shape)
-
-        x = self.proj_embedding(x)
-        # print("OUTPUT OF PROJECTION LAYER: ", x.shape)
-
-        x = x.reshape(batch_size, -1, self.embed_dim) # then i comeback the original shape
-        # print("RESHAPING.. INPUT TO LSTM: ", x.shape)  
-        # lstm part
-        h_0 = th.autograd.Variable(th.randn(self.num_layers, x.size(0), self.hidden_size)).to(self.DEVICE)
-        c_0 = th.autograd.Variable(th.randn(self.num_layers, x.size(0), self.hidden_size)).to(self.DEVICE)
-        y, (hn, cn) = self.lstm_cell(x, (h_0, c_0))
-        # print("\n LSTM OUTPUT SHAPE: ", y.shape)          
-        y = y[:, -1, :]
-
-        # print("\n FINAL OUTPUT SHAPE: ", y.shape)
-        return y
-
-#ResNet18 with some adjustments 
-class ResNet(BaseFeaturesExtractor):
-    """
-    :param observation_space: (gym.Space)
-    :param features_dim: (int) Number of features extracted.
-        This corresponds to the number of unit for the last layer.
-    """
-
-    def __init__(self, observation_space: spaces.Box, features_dim: int = 512, n_frames = 4, pre_train = False):
-        super().__init__(observation_space, features_dim)
-        
-        
-        self.backbone = resnet18(weights='IMAGENET1K_V1') if pre_train else resnet18() #weights='IMAGENET1K_V1')
-        # stem adjustment 
-        self.backbone.conv1 = nn.Conv2d(n_frames, 64, 3, 1, 1, bias=False)
-        self.backbone.maxpool = nn.Identity()
-        # only feature maps
-        self.backbone.fc = nn.Identity()
-
-    def forward(self, observations: th.Tensor) -> th.Tensor:
-        return self.backbone(observations)
+from gym.wrappers.frame_stack import FrameStack
+from datetime import datetime
+from enum import Enum
+from ..networks.resnet import ResNet
+from ..utils.wrapper import CustomWrapper
 
 
 class Variant(Enum):
     NATURECNN = 0
-    # RESNET = 1
-    # RESNET_PRETRAIN = 2
+    RESNET = 1
+    RESNET_PRETRAIN = 2
 
 
-def main(base_prefix=".", force=False):
-    for variant in list(Variant):
+def main(base_prefix=".", force=False, variant=None):
+    variant_to_do = [variant] if variant is not None else list(Variant)
+    for variant in variant_to_do:
         print(f"Running variant {variant.name}...")
         logdir = f"{base_prefix}/sac_tb_step4_2_{variant.value}_log"
-        
-        policy_kwargs = dict(features_extractor_class = ResNet)
+
+        policy_kwargs = dict(features_extractor_class=ResNet)
 
         sac_params = {
-                "learning_rate": 2e-3,
-                "gamma": 0.99,
-                "batch_size": 128
+            "learning_rate": 2e-3,
+            "gamma": 0.99,
+            "batch_size": 128
         }
 
         if os.path.isdir(logdir):
@@ -132,54 +45,45 @@ def main(base_prefix=".", force=False):
             else:
                 print(f"Directory {logdir} already exists. Shutting down...")
                 return
-        
-        # env = gym.make(f"CustomHopper-UDR-source-v0")
-        # env = ResizeObservation(CustomWrapper(
-        #           PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(128, 128))
-
-        # env = FrameStack(env, 4)
-
-        # env_source = ResizeObservation(CustomWrapper(
-        #             PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(128, 128))
-        # env_target =  ResizeObservation(CustomWrapper(
-        #             PixelObservationWrapper(gym.make(f"CustomHopper-target-v0"))), shape=(128, 128))
-
-        # env_source = FrameStack(env_source, 4)
-        # env_target = FrameStack(env_target, 4)
-        #env = GrayScaleObservation(env, keep_dim=True)
-        #print("\n OBSERVATION SPACE GRAYSCALE:", env.observation_space.), shape=(128, 128)), keep_dim=True), 4, "last")
 
         env = FrameStack(GrayScaleObservation(ResizeObservation(CustomWrapper(
-                PixelObservationWrapper(gym.make(f"CustomHopper-UDR-source-v0"))), shape=(128, 128))), 4)
+            PixelObservationWrapper(gym.make(f"CustomHopper-UDR-source-v0"))), shape=(128, 128))), 4)
 
         env_source = FrameStack(GrayScaleObservation(ResizeObservation(CustomWrapper(
-                PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(128, 128))), 4)
+            PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(128, 128))), 4)
 
         env_target = FrameStack(GrayScaleObservation(ResizeObservation(CustomWrapper(
-                PixelObservationWrapper(gym.make(f"CustomHopper-target-v0"))), shape=(128, 128))), 4)
+            PixelObservationWrapper(gym.make(f"CustomHopper-target-v0"))), shape=(128, 128))), 4)
 
-        logger = configure(logdir, ["stdout", "tensorboard"])
+        logger = configure(logdir, ["tensorboard"])
 
         if variant == Variant.NATURECNN:
-            model = SAC("CnnPolicy", env, **sac_params, seed=42, buffer_size=10000)
+            model = SAC("CnnPolicy", env, **sac_params,
+                        seed=42, buffer_size=10000)
         elif variant == Variant.RESNET:
-            policy_kwargs = dict(features_extractor_class = ResNet)
-            model = SAC("CnnPolicy", env, **sac_params, policy_kwargs=policy_kwargs, seed=42, buffer_size=10000) #for resNet: add policy_kwargs=policy_kwargs as parameter
+            policy_kwargs = dict(features_extractor_class=ResNet)
+            # for resNet: add policy_kwargs=policy_kwargs as parameter
+            model = SAC("CnnPolicy", env, **sac_params,
+                        policy_kwargs=policy_kwargs, seed=42, buffer_size=10000)
         else:
-            policy_kwargs = dict(features_extractor_class = ResNet, features_extractor_kwargs = {"pre_train": True})
-            model = SAC("CnnPolicy", env, **sac_params, policy_kwargs=policy_kwargs, seed=42, buffer_size=10000)
+            policy_kwargs = dict(
+                features_extractor_class=ResNet, features_extractor_kwargs={"pre_train": True})
+            model = SAC("CnnPolicy", env, **sac_params,
+                        policy_kwargs=policy_kwargs, seed=42, buffer_size=10000)
 
         model.set_logger(logger)
-        callback_max_episodes = StopTrainingOnMaxEpisodes(max_episodes=10, verbose=1)
-        model.learn(total_timesteps=int(1e10), progress_bar=True, tb_log_name=f"SAC_training_frameStack_{variant.name}",
-                    callback=callback_max_episodes)
-        
+
+        model.learn(total_timesteps=250_000, progress_bar=True,
+                    tb_log_name=f"SAC_training_frameStack_{variant.name}")
+
         if os.path.isfile(os.path.join("trained_models", f"step4_2_{variant.name}.zip")):
             fname = datetime.now().strftime("%Y%m%d_%H%M%S")
             print(fname)
-            model.save(os.path.join("trained_models", f"step4_2_{variant.name}_{fname}"))
+            model.save(os.path.join("trained_models",
+                       f"step4_2_{variant.name}_{fname}"))
         else:
-            model.save(os.path.join("trained_models", f"step4_2_{variant.name}"))
+            model.save(os.path.join("trained_models",
+                       f"step4_2_{variant.name}"))
 
         n_episodes = 50
 
@@ -207,3 +111,8 @@ def main(base_prefix=".", force=False):
             run_avg_return /= n_episodes
             logger.record(f'run_avg_return/{env_name}', run_avg_return)
             logger.dump()
+
+
+main_naturecnn = partial(main, variant=Variant.NATURECNN)
+main_resnet = partial(main, variant=Variant.RESNET)
+main_rsenet_pretrained = partial(main, variant=Variant.RESNET_PRETRAIN)

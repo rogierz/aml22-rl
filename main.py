@@ -20,7 +20,7 @@ from src.steps.step3v1 import main as step3v1
 from src.steps.step3v2 import main as step3v2
 from src.steps.step4 import main as step4
 from src.steps.step4_1 import main as step4_1
-from src.steps.step4_2 import main as step4_2
+from src.steps.step4_2 import main as step4_2v0, main_naturecnn as step4_2v1, main_resnet as step4_2v2, main_rsenet_pretrained as step4_2v3
 from src.utils.parser import parser
 
 STEPS = {
@@ -29,7 +29,7 @@ STEPS = {
     "3": [step3v0, step3v1, step3v2],
     "4": [step4],
     "4_1": [step4_1],
-    "4_2": [step4_2]
+    "4_2": [step4_2v0, step4_2v1, step4_2v2, step4_2v3]
 }
 
 if __name__ == '__main__':
