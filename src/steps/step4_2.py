@@ -45,13 +45,13 @@ def main(base_prefix=".", force=False, variant=None):
                 return
 
         env = FrameStack(GrayScaleObservation(ResizeObservation(CustomWrapper(
-            PixelObservationWrapper(gym.make(f"CustomHopper-UDR-source-v0"))), shape=(64, 64))), 4)
+            PixelObservationWrapper(gym.make(f"CustomHopper-UDR-source-v0"))), shape=(64, 64))), 3)
 
         env_source = FrameStack(GrayScaleObservation(ResizeObservation(CustomWrapper(
-            PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(64, 64))), 4)
+            PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(64, 64))), 3)
 
         env_target = FrameStack(GrayScaleObservation(ResizeObservation(CustomWrapper(
-            PixelObservationWrapper(gym.make(f"CustomHopper-target-v0"))), shape=(64, 64))), 4)
+            PixelObservationWrapper(gym.make(f"CustomHopper-target-v0"))), shape=(64, 64))), 3)
 
         logger = configure(logdir, ["tensorboard"])
 
