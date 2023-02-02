@@ -71,7 +71,6 @@ class ShuffleNet(BaseFeaturesExtractor):
         # only feature maps
         self.backbone.classifier = nn.Identity()  # nn.Linear(in_features=512, out_features=features_dim)
         self.backbone.fc = nn.Identity()  # nn.Linear(in_features=512, out_features=features_dim)
-        print(self.backbone)
 
     def forward(self, observations: th.Tensor) -> th.Tensor:
         return self.backbone(observations)
