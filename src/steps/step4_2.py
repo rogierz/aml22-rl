@@ -102,8 +102,8 @@ class ResNet(BaseFeaturesExtractor):
 
 class Variant(Enum):
     NATURECNN = 0
-    RESNET = 1
-    RESNET_PRETRAIN = 2
+    # RESNET = 1
+    # RESNET_PRETRAIN = 2
 
 def main(base_prefix=".", force=False):
     for variant in list(Variant):
@@ -143,7 +143,7 @@ def main(base_prefix=".", force=False):
         # env_target = FrameStack(env_target, 4)
         #env = GrayScaleObservation(env, keep_dim=True)
         #print("\n OBSERVATION SPACE GRAYSCALE:", env.observation_space.shape)
-    
+       
         env = VecFrameStack(DummyVecEnv([lambda: GrayScaleObservation(ResizeObservation(CustomWrapper(
                 PixelObservationWrapper(gym.make(f"CustomHopper-UDR-source-v0"))), shape=(128, 128)), keep_dim=True)]), 4, "last")
         
@@ -153,7 +153,7 @@ def main(base_prefix=".", force=False):
         env_target = VecFrameStack(DummyVecEnv([lambda: GrayScaleObservation(ResizeObservation(CustomWrapper(
                 PixelObservationWrapper(gym.make(f"CustomHopper-target-v0"))), shape=(128, 128)), keep_dim=True)]), 4, "last")
         
-        logger = configure(logdir, ["tensorboard"])
+        logger = configure(logdir, ["stdout", "tensorboard"])
 
         if variant == Variant.NATURECNN:
             model = SAC("CnnPolicy", env, **sac_params, seed=42, buffer_size=10000)
@@ -166,7 +166,7 @@ def main(base_prefix=".", force=False):
 
         model.set_logger(logger)
         
-        model.learn(total_timesteps=250000, progress_bar=True, tb_log_name=f"SAC_training_frameStack_{variant.name}")
+        model.learn(total_timesteps=500, progress_bar=True, tb_log_name=f"SAC_training_frameStack_{variant.name}")
         
         if os.path.isfile(os.path.join("trained_models", f"step4_2_{variant.name}.zip")):
             fname = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -178,6 +178,7 @@ def main(base_prefix=".", force=False):
         n_episodes = 50
 
         for env_name, test_env in [("source", env_source), ("target", env_target)]:
+            print(f"Testing on {env_name}")
             run_avg_return = 0
             for ep in range(n_episodes):
                 done = False
