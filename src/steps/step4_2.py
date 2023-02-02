@@ -1,3 +1,4 @@
+import torch
 import torch as th
 from torch import nn
 import gym
@@ -17,6 +18,7 @@ from enum import Enum
 import os
 import shutil
 
+
 class CustomWrapper(gym.ObservationWrapper):
     def __init__(self, env):
         super().__init__(env)
@@ -24,6 +26,7 @@ class CustomWrapper(gym.ObservationWrapper):
 
     def observation(self, obs):
         return obs["pixels"]
+
 
 class LSTM(BaseFeaturesExtractor):
     
@@ -99,10 +102,12 @@ class ResNet(BaseFeaturesExtractor):
     def forward(self, observations: th.Tensor) -> th.Tensor:
         return self.backbone(observations)
 
+
 class Variant(Enum):
     NATURECNN = 0
     # RESNET = 1
     # RESNET_PRETRAIN = 2
+
 
 def main(base_prefix=".", force=False):
     for variant in list(Variant):
@@ -142,7 +147,7 @@ def main(base_prefix=".", force=False):
         # env_target = FrameStack(env_target, 4)
         #env = GrayScaleObservation(env, keep_dim=True)
         #print("\n OBSERVATION SPACE GRAYSCALE:", env.observation_space.), shape=(128, 128)), keep_dim=True), 4, "last")
-        
+
         env = FrameStack(GrayScaleObservation(ResizeObservation(CustomWrapper(
                 PixelObservationWrapper(gym.make(f"CustomHopper-UDR-source-v0"))), shape=(128, 128))), 4)
 
@@ -183,11 +188,14 @@ def main(base_prefix=".", force=False):
                 done = False
                 n_steps = 0
                 obs = test_env.reset()
+                obs = np.array(obs)
                 episode_return = 0
 
                 while not done:  # Until the episode is over
+
                     action, _ = model.predict(obs, deterministic=True)
                     obs, reward, done, info = test_env.step(action)
+                    obs = np.array(obs)
                     n_steps += 1
                     episode_return += reward
 
