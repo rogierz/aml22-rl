@@ -1,7 +1,7 @@
 """
 This file generates the dataset used to train the backbone of the vision-based policy.
 """
-
+import csv
 import os
 
 from PIL import Image
