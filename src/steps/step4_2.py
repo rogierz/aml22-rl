@@ -65,7 +65,7 @@ def main(base_prefix=".", force=False, variant=None):
                         policy_kwargs=policy_kwargs, seed=42, buffer_size=10000)
         else:
             policy_kwargs = dict(
-                features_extractor_class=ResNet, features_extractor_kwargs={"pre_train": True})
+                features_extractor_class=ShuffleNet, features_extractor_kwargs={"pre_train": True})
             model = SAC("CnnPolicy", env, **sac_params,
                         policy_kwargs=policy_kwargs, seed=42, buffer_size=10000)
 
