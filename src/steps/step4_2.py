@@ -12,7 +12,7 @@ from stable_baselines3.common.logger import configure
 from gym.wrappers.frame_stack import FrameStack
 from datetime import datetime
 from enum import Enum
-from ..networks.resnet import ResNet
+from ..networks.resnet import ResNet, MobileNet
 from ..utils.wrapper import CustomWrapper
 
 
@@ -45,13 +45,13 @@ def main(base_prefix=".", force=False, variant=None):
                 return
 
         env = FrameStack(GrayScaleObservation(ResizeObservation(CustomWrapper(
-            PixelObservationWrapper(gym.make(f"CustomHopper-UDR-source-v0"))), shape=(128, 128))), 4)
+            PixelObservationWrapper(gym.make(f"CustomHopper-UDR-source-v0"))), shape=(64, 64))), 4)
 
         env_source = FrameStack(GrayScaleObservation(ResizeObservation(CustomWrapper(
-            PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(128, 128))), 4)
+            PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(64, 64))), 4)
 
         env_target = FrameStack(GrayScaleObservation(ResizeObservation(CustomWrapper(
-            PixelObservationWrapper(gym.make(f"CustomHopper-target-v0"))), shape=(128, 128))), 4)
+            PixelObservationWrapper(gym.make(f"CustomHopper-target-v0"))), shape=(64, 64))), 4)
 
         logger = configure(logdir, ["tensorboard"])
 
@@ -59,7 +59,7 @@ def main(base_prefix=".", force=False, variant=None):
             model = SAC("CnnPolicy", env, **sac_params,
                         seed=42, buffer_size=10000)
         elif variant == Variant.RESNET:
-            policy_kwargs = dict(features_extractor_class=ResNet)
+            policy_kwargs = dict(features_extractor_class=MobileNet)
             # for resNet: add policy_kwargs=policy_kwargs as parameter
             model = SAC("CnnPolicy", env, **sac_params,
                         policy_kwargs=policy_kwargs, seed=42, buffer_size=10000)
