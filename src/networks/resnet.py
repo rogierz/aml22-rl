@@ -20,9 +20,8 @@ class ResNet(BaseFeaturesExtractor):
             weights='IMAGENET1K_V1') if pre_train else resnet18()
         # stem adjustment
         self.backbone.conv1 = nn.Conv2d(n_frames, 64, 3, 1, 1, bias=False)
-        # self.backbone.maxpool = nn.Identity()
         # only feature maps
-        self.backbone.fc = nn.Identity() # nn.Linear(in_features=512, out_features=features_dim)
+        self.backbone.fc = nn.Identity()
 
     def forward(self, observations: th.Tensor) -> th.Tensor:
         return self.backbone(observations)

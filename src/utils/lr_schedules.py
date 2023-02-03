@@ -28,8 +28,9 @@ def constant_schedule(initial_value: float) -> Callable[[float], float]:
 
 def step_schedule(initial_value: float) -> Callable[[float], float]:
     """
-    Wrapper for a step learning rate schedule, i.e. the LR value over the progress will be a piecewise constant function.
-    The initial value is multiplied by the global variable STEP (the decay factor) every 30% of the progress.
+    Wrapper for a step learning rate schedule, i.e. the LR value over the progress will be
+    a piecewise constant function. The initial value is multiplied by the global variable STEP (the decay rate)
+    every 30% of the progress.
 
     :param initial_value:float: Set the initial value of the learning rate
     :return: A function that returns the current LR based on the progress remaining

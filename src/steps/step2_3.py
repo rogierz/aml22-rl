@@ -59,6 +59,7 @@ def objective_fn(trial, logdir='.'):
     params_metric = {}
 
     last_trained_env = None
+    model = None
 
     for source, target in [('source', 'source'), ('source', 'target'), ('target', 'target')]:
         logger = configure(f"{logdir}/trial_{trial.number}/{source}_{target}",

@@ -58,8 +58,12 @@ def main(base_prefix=".", force=False):
         env_target = ResizeObservation(ExtractionWrapper(
             PixelObservationWrapper(gym.make(f"CustomHopper-target-v0"))), shape=(128, 128))
 
-        env = RewardWrapper(ResizeObservation(ExtractionWrapper(
-            PixelObservationWrapper(env)), shape=(128, 128)), variant, target=(None if variant == RewardWrapperMode.MAXIMIZE else env_target))
+        env = RewardWrapper(
+            ResizeObservation(
+                ExtractionWrapper(
+                    PixelObservationWrapper(env)),
+                shape=(128, 128)), variant,
+            target=(None if variant == RewardWrapperMode.MAXIMIZE else env_target))
 
         model = SAC('CnnPolicy', env, **sac_params,
                     seed=42, buffer_size=100000)

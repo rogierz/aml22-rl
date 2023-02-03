@@ -12,7 +12,7 @@ class MobileNet(BaseFeaturesExtractor):
         This corresponds to the number of unit for the last layer.
     """
 
-    def __init__(self, observation_space: spaces.Box, features_dim: int = 576, n_frames=3, pre_train=False):
+    def __init__(self, observation_space: spaces.Box, features_dim: int = 576, pre_train=False):
         super().__init__(observation_space, features_dim)
 
         # weights='IMAGENET1K_V1')
