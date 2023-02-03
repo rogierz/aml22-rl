@@ -12,14 +12,15 @@ from stable_baselines3.common.logger import configure
 from gym.wrappers.frame_stack import FrameStack
 from datetime import datetime
 from enum import Enum
-from ..networks.resnet import ResNet, MobileNet, ShuffleNet
+
+from ..networks.shufflenet import ShuffleNet
 from ..utils.wrapper import CustomWrapper
 
 
 class Variant(Enum):
-    NATURECNN = 0
-    RESNET = 1
-    RESNET_PRETRAIN = 2
+    NATURE_CNN = 0
+    CUSTOM_NET = 1
+    CUSTOM_NET_PRETRAIN = 2
 
 
 def main(base_prefix=".", force=False, variant=None):
@@ -55,17 +56,17 @@ def main(base_prefix=".", force=False, variant=None):
 
         logger = configure(logdir, ["tensorboard"])
 
-        if variant == Variant.NATURECNN:
+        if variant == Variant.NATURE_CNN:
             model = SAC("CnnPolicy", env, **sac_params,
                         seed=42, buffer_size=10000)
-        elif variant == Variant.RESNET:
+        elif variant == Variant.CUSTOM_NET:
             policy_kwargs = dict(features_extractor_class=ShuffleNet)
             # for resNet: add policy_kwargs=policy_kwargs as parameter
             model = SAC("CnnPolicy", env, **sac_params,
                         policy_kwargs=policy_kwargs, seed=42, buffer_size=10000)
         else:
             policy_kwargs = dict(
-                features_extractor_class=ResNet, features_extractor_kwargs={"pre_train": True})
+                features_extractor_class=ShuffleNet, features_extractor_kwargs={"pre_train": True})
             model = SAC("CnnPolicy", env, **sac_params,
                         policy_kwargs=policy_kwargs, seed=42, buffer_size=10000)
 
@@ -111,6 +112,6 @@ def main(base_prefix=".", force=False, variant=None):
             logger.dump()
 
 
-main_naturecnn = partial(main, variant=Variant.NATURECNN)
-main_resnet = partial(main, variant=Variant.RESNET)
-main_rsenet_pretrained = partial(main, variant=Variant.RESNET_PRETRAIN)
+main_nature_cnn = partial(main, variant=Variant.NATURE_CNN)
+main_custom_cnn = partial(main, variant=Variant.CUSTOM_NET)
+main_custom_cnn_pretrained = partial(main, variant=Variant.CUSTOM_NET_PRETRAIN)

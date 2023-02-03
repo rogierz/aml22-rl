@@ -20,7 +20,7 @@ from src.steps.step3v1 import main as step3v1
 from src.steps.step3v2 import main as step3v2
 from src.steps.step4 import main as step4
 from src.steps.step4_1 import main as step4_1
-from src.steps.step4_2 import main as step4_2v0, main_naturecnn as step4_2v1, main_resnet as step4_2v2, main_rsenet_pretrained as step4_2v3
+from src.steps.step4_2 import main as step4_2v0, main_nature_cnn as step4_2v1, main_custom_cnn as step4_2v2, main_custom_cnn_pretrained as step4_2v3
 from src.utils.parser import parser
 
 STEPS = {
