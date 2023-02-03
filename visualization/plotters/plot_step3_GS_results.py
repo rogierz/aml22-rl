@@ -190,4 +190,4 @@ def main(input_file, show=True, output_folder=".", fname="plot"):
 
 
 if __name__ == "__main__":
-    main(os.path.join("data", "GS_data"))
+    main(os.path.join("../data", "GS_data"))

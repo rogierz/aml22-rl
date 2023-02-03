@@ -22,8 +22,8 @@ optional arguments:
 
 from argparse import ArgumentParser
 
-from plot_step3_GS_results import main as plot_step3_gs
-from plot_step3_TPE_results import main as plot_step3_tpe
+from plotters.plot_step3_GS_results import main as plot_step3_gs
+from plotters.plot_step3_TPE_results import main as plot_step3_tpe
 
 PLOTTERS = {
     "tpe": plot_step3_tpe,
