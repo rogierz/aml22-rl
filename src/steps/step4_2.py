@@ -14,7 +14,7 @@ from datetime import datetime
 from enum import Enum
 
 from ..networks.shufflenet import ShuffleNet
-from ..utils.wrapper import CustomWrapper
+from ..utils.wrapper import ExtractionWrapper
 
 
 class VariantStep4_2(Enum):
@@ -45,13 +45,13 @@ def main(base_prefix=".", force=False, variant=None):
                 print(f"Directory {logdir} already exists. Shutting down...")
                 return
 
-        env = FrameStack(GrayScaleObservation(ResizeObservation(CustomWrapper(
+        env = FrameStack(GrayScaleObservation(ResizeObservation(ExtractionWrapper(
             PixelObservationWrapper(gym.make(f"CustomHopper-UDR-source-v0"))), shape=(64, 64))), 3)
 
-        env_source = FrameStack(GrayScaleObservation(ResizeObservation(CustomWrapper(
+        env_source = FrameStack(GrayScaleObservation(ResizeObservation(ExtractionWrapper(
             PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(64, 64))), 3)
 
-        env_target = FrameStack(GrayScaleObservation(ResizeObservation(CustomWrapper(
+        env_target = FrameStack(GrayScaleObservation(ResizeObservation(ExtractionWrapper(
             PixelObservationWrapper(gym.make(f"CustomHopper-target-v0"))), shape=(64, 64))), 3)
 
         logger = configure(logdir, ["tensorboard"])

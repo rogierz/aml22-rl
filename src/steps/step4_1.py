@@ -24,7 +24,7 @@ from stable_baselines3 import SAC
 from stable_baselines3.common.logger import configure
 
 from model.env.custom_hopper import *
-from ..utils.wrapper import CustomWrapper, RewardWrapper, RewardWrapperMode
+from ..utils.wrapper import ExtractionWrapper, RewardWrapper, RewardWrapperMode
 
 
 def main(base_prefix=".", force=False):
@@ -53,14 +53,13 @@ def main(base_prefix=".", force=False):
         total_timesteps = int(250_000)
 
         env = gym.make(f"CustomHopper-UDR-source-v0")
-        env_source = ResizeObservation(CustomWrapper(
+        env_source = ResizeObservation(ExtractionWrapper(
             PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(128, 128))
-        env_target = ResizeObservation(CustomWrapper(
+        env_target = ResizeObservation(ExtractionWrapper(
             PixelObservationWrapper(gym.make(f"CustomHopper-target-v0"))), shape=(128, 128))
 
-        env = RewardWrapper(ResizeObservation(CustomWrapper(
+        env = RewardWrapper(ResizeObservation(ExtractionWrapper(
             PixelObservationWrapper(env)), shape=(128, 128)), variant, target=(None if variant == RewardWrapperMode.MAXIMIZE else env_target))
-        obs = env.reset()
 
         model = SAC('CnnPolicy', env, **sac_params,
                     seed=42, buffer_size=100000)
