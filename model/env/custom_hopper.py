@@ -102,7 +102,6 @@ class CustomHopper(MujocoEnv, utils.EzPickle):
 
         if self.randomize and done:
             self.n_episodes += 1
-            # print(f"\nCurrent episode: {self.n_episodes}")
             self.set_random_parameters()
 
         return ob, reward, done, {}
