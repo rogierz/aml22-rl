@@ -20,8 +20,8 @@ from ..utils.wrapper import ExtractionWrapper
 
 
 class VariantStep4(Enum):
-    UDR = 0
-    NO_UDR = 1
+    UDR = 1
+    NO_UDR = 2
 
 
 def main(base_prefix=".", force=False, variant=None):

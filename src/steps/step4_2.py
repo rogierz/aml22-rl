@@ -18,9 +18,9 @@ from ..utils.wrapper import ExtractionWrapper
 
 
 class VariantStep4_2(Enum):
-    NATURE_CNN = 0
-    CUSTOM_NET = 1
-    CUSTOM_NET_PRETRAIN = 2
+    NATURE_CNN = 1
+    CUSTOM_NET = 2
+    CUSTOM_NET_PRETRAIN = 3
 
 
 def main(base_prefix=".", force=False, variant=None):
@@ -77,7 +77,6 @@ def main(base_prefix=".", force=False, variant=None):
 
         if os.path.isfile(os.path.join("trained_models", f"step4_2_{variant.name}.zip")):
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            # print(timestamp)
             model.save(os.path.join("trained_models",
                        f"step4_2_{variant.name}_{timestamp}"))
         else:

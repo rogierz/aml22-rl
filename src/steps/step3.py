@@ -17,9 +17,9 @@ from src.utils.lr_schedules import LR_SCHEDULES
 
 
 class VariantStep3(Enum):
-    INTERVAL = 0
-    RELATIVE = 1
-    ABSOLUTE = 2
+    INTERVAL = 1
+    RELATIVE = 2
+    ABSOLUTE = 3
 
 
 def sample_sac_params(trial):
