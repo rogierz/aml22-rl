@@ -17,14 +17,14 @@ from ..networks.shufflenet import ShuffleNet
 from ..utils.wrapper import CustomWrapper
 
 
-class Variant(Enum):
+class VariantStep4_2(Enum):
     NATURE_CNN = 0
     CUSTOM_NET = 1
     CUSTOM_NET_PRETRAIN = 2
 
 
 def main(base_prefix=".", force=False, variant=None):
-    variant_to_do = [variant] if variant is not None else list(Variant)
+    variant_to_do = [variant] if variant is not None else list(VariantStep4_2)
     for variant in variant_to_do:
         print(f"Running variant {variant.name}...")
         logdir = f"{base_prefix}/sac_tb_step4_2_{variant.value}_log"
@@ -56,10 +56,10 @@ def main(base_prefix=".", force=False, variant=None):
 
         logger = configure(logdir, ["tensorboard"])
 
-        if variant == Variant.NATURE_CNN:
+        if variant == VariantStep4_2.NATURE_CNN:
             model = SAC("CnnPolicy", env, **sac_params,
                         seed=42, buffer_size=10000)
-        elif variant == Variant.CUSTOM_NET:
+        elif variant == VariantStep4_2.CUSTOM_NET:
             policy_kwargs = dict(features_extractor_class=ShuffleNet)
             # for resNet: add policy_kwargs=policy_kwargs as parameter
             model = SAC("CnnPolicy", env, **sac_params,
@@ -76,10 +76,10 @@ def main(base_prefix=".", force=False, variant=None):
                     tb_log_name=f"SAC_training_frameStack_{variant.name}")
 
         if os.path.isfile(os.path.join("trained_models", f"step4_2_{variant.name}.zip")):
-            fname = datetime.now().strftime("%Y%m%d_%H%M%S")
-            print(fname)
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            # print(timestamp)
             model.save(os.path.join("trained_models",
-                       f"step4_2_{variant.name}_{fname}"))
+                       f"step4_2_{variant.name}_{timestamp}"))
         else:
             model.save(os.path.join("trained_models",
                        f"step4_2_{variant.name}"))
@@ -112,6 +112,6 @@ def main(base_prefix=".", force=False, variant=None):
             logger.dump()
 
 
-main_nature_cnn = partial(main, variant=Variant.NATURE_CNN)
-main_custom_cnn = partial(main, variant=Variant.CUSTOM_NET)
-main_custom_cnn_pretrained = partial(main, variant=Variant.CUSTOM_NET_PRETRAIN)
+main_nature_cnn = partial(main, variant=VariantStep4_2.NATURE_CNN)
+main_custom_cnn = partial(main, variant=VariantStep4_2.CUSTOM_NET)
+main_custom_cnn_pretrained = partial(main, variant=VariantStep4_2.CUSTOM_NET_PRETRAIN)
