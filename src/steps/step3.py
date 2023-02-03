@@ -5,6 +5,7 @@ episodes.
 """
 import os
 import shutil
+from enum import Enum
 from functools import partial
 
 import optuna
@@ -13,6 +14,12 @@ from stable_baselines3.common.logger import configure, HParam
 
 from model.env.custom_hopper import *
 from src.utils.lr_schedules import LR_SCHEDULES
+
+
+class VariantStep3(Enum):
+    INTERVAL = 0
+    RELATIVE = 1
+    ABSOLUTE = 2
 
 
 def sample_sac_params(trial):
@@ -39,7 +46,7 @@ def sample_sac_params(trial):
     }
 
 
-def objective_fn(trial, logdir='.'):
+def objective_fn(trial, logdir='.', variant=None):
     """
     The objective_fn function is the objective function that optuna optimizes.
     It takes a trial object as an argument and returns the value of the objective function calculated with the sampled
@@ -48,6 +55,7 @@ def objective_fn(trial, logdir='.'):
 
     :param trial: The current optuna trial
     :param logdir: The directory to which store the logs
+    :param variant: The variant of the domain randomization to run
     :return: The average return of the sourceUDR→target configuration
     """
     params = sample_sac_params(trial)
@@ -59,7 +67,7 @@ def objective_fn(trial, logdir='.'):
     logger = configure(f"{logdir}/trial_{trial.number}", ["tensorboard"])
     metric = 0
     params_metric = {}
-    env_source_UDR = gym.make(f"CustomHopper-UDR-source-v2")
+    env_source_UDR = gym.make(f"CustomHopper-UDR-source-v{variant.value}")
     env_source = gym.make(f"CustomHopper-source-v0")
     env_target = gym.make(f"CustomHopper-target-v0")
 
@@ -69,7 +77,7 @@ def objective_fn(trial, logdir='.'):
     model.learn(total_timesteps=int(1e5), progress_bar=True,
                 tb_log_name=f"SAC_training_UDR")
 
-    model.save(os.path.join("trained_models", f"step3v2_trial_{trial.number}"))
+    model.save(os.path.join("trained_models", f"step3_{variant.value}_trial_{trial.number}"))
 
     n_episodes = 50
 
@@ -106,38 +114,43 @@ def objective_fn(trial, logdir='.'):
     return metric
 
 
-def main(base_prefix='.', force=False):
+def main(base_prefix='.', force=False, variant=None):
     """
     This function runs the ablation study through the optuna APIs.
 
     :param base_prefix: Specify the path to the directory where to save the results
     :param force: If it is true (from command line argument), overwrite previous existing logs
+    :param variant: Determine which variant of domain randomization to run
     """
-    logdir = f"{base_prefix}/sac_tb_step3v2_log"
+    variant_to_do = [variant] if variant is not None else list(VariantStep3)
+    for variant in variant_to_do:
+        print(f"Running variant {variant.name}...")
+        logdir = f"{base_prefix}/sac_tb_step3_{variant.value}_log"
 
-    if os.path.isdir(logdir):
-        if force:
-            try:
-                shutil.rmtree(logdir)
-            except Exception as e:
-                print(e)
-        else:
-            print(f"Directory {logdir} already exists. Shutting down...")
-            return
+        if os.path.isdir(logdir):
+            if force:
+                try:
+                    shutil.rmtree(logdir)
+                except Exception as e:
+                    print(e)
+            else:
+                print(f"Directory {logdir} already exists. Shutting down...")
+                return
 
-    search_space = {
-        "gamma": [0.99],
-        "learning_rate": [1e-3, 2e-3],
-        "batch_size": [128, 256],
-        "lr_schedule": ["constant", "step"]
-    }
+        search_space = {
+            "gamma": [0.99],
+            "learning_rate": [1e-3, 2e-3],
+            "batch_size": [128, 256],
+            "lr_schedule": ["constant", "step"]
+        }
 
-    study = optuna.create_study(
-        sampler=optuna.samplers.GridSampler(search_space), direction="maximize", study_name="Our awesome study")
+        study = optuna.create_study(
+            sampler=optuna.samplers.GridSampler(search_space), direction="maximize", study_name="Our awesome study")
 
-    objective = partial(objective_fn, logdir=logdir)
-    study.optimize(objective)
+        objective = partial(objective_fn, logdir=logdir)
+        study.optimize(objective)
 
 
-if __name__ == "__main__":
-    main()
+main_interval = partial(main, variant=VariantStep3.INTERVAL)
+main_relative = partial(main, variant=VariantStep3.RELATIVE)
+main_absolute = partial(main, variant=VariantStep3.ABSOLUTE)
