@@ -147,7 +147,7 @@ def main(base_prefix='.', force=False, variant=None):
         study = optuna.create_study(
             sampler=optuna.samplers.GridSampler(search_space), direction="maximize", study_name="Our awesome study")
 
-        objective = partial(objective_fn, logdir=logdir)
+        objective = partial(objective_fn, logdir=logdir, variant=variant)
         study.optimize(objective)
 
 
