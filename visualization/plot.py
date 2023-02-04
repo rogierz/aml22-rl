@@ -52,14 +52,16 @@ if __name__ == '__main__':
     group1.add_argument("-f", "--file", action="count", help="Save the plots in a png file (see param --fname)")
     parser.add_argument("-o", "--output-dir", help="The output folder", type=str, default="plots", dest="output_folder")
     parser.add_argument("-n", "--fname", help="The output file name", type=str, default="plot", dest="fname")
+    parser.add_argument("-m", "--smoothing", help="The smoothing weight", type=float, default=0)
 
-    parser.print_help()
+    # parser.print_help()
 
     # extract arguments as dictionary
     argv = vars(parser.parse_args())
 
     plotter_name = argv['data_to_plot']
     argv["show"] = bool(argv["show"])
+    argv["smoothing"] -= int(argv["smoothing"])
 
     del argv['data_to_plot']
     del argv['file']

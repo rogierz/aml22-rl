@@ -9,10 +9,11 @@ from itertools import product
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from scipy.ndimage import gaussian_filter1d
+
+from .plot_utils import smooth
 
 
-def main(input_file, show=True, output_folder=".", fname="plot"):
+def main(input_file, show=True, output_folder=".", fname="plot", smoothing=0.0):
     """
     The main function takes a CSV file as input and plots the average return
     for each hyperparameter combination. The plot is saved to a .png file in the
@@ -22,6 +23,7 @@ def main(input_file, show=True, output_folder=".", fname="plot"):
     :param show: Show the plot instead of saving it
     :param output_folder: The folder to which save the plot
     :param fname: The name of the plot file
+    :param smoothing: the smoothing weight to apply to the plots, in the interval [0, 1] = [no-smoothing, max-smoothing]
     """
     df = pd.read_csv(input_file)
 
@@ -35,9 +37,9 @@ def main(input_file, show=True, output_folder=".", fname="plot"):
 
     # ------------------- LR --------------------------
     x1 = df1['learning_rate']
-    y11 = gaussian_filter1d(df1['source_source/avg_return'], sigma=5)
-    y12 = gaussian_filter1d(df1['source_target/avg_return'], sigma=5)
-    y13 = gaussian_filter1d(df1['target_target/avg_return'], sigma=5)
+    y11 = smooth(df1['source_source/avg_return'], smoothing)
+    y12 = smooth(df1['source_target/avg_return'], smoothing)
+    y13 = smooth(df1['target_target/avg_return'], smoothing)
 
     # axs[0, 0].scatter(df['learning_rate'], y1, s=10)
     # axs[0, 0].scatter(df['learning_rate'], y2, s=10)
@@ -58,9 +60,9 @@ def main(input_file, show=True, output_folder=".", fname="plot"):
     # ------------------- gamma -----------------------
 
     x2 = df2['gamma']
-    y21 = gaussian_filter1d(df2['source_source/avg_return'], sigma=5)
-    y22 = gaussian_filter1d(df2['source_target/avg_return'], sigma=5)
-    y23 = gaussian_filter1d(df2['target_target/avg_return'], sigma=5)
+    y21 = smooth(df2['source_source/avg_return'], smoothing)
+    y22 = smooth(df2['source_target/avg_return'], smoothing)
+    y23 = smooth(df2['target_target/avg_return'], smoothing)
 
     axs[0, 1].plot(x2, y21, label="source_source")
     axs[0, 1].plot(x2, y22, label="source_target")
@@ -106,9 +108,9 @@ def main(input_file, show=True, output_folder=".", fname="plot"):
 
     x4 = df4['total_timesteps']
 
-    y41 = gaussian_filter1d(df4['source_source/avg_return'], sigma=5)
-    y42 = gaussian_filter1d(df4['source_target/avg_return'], sigma=5)
-    y43 = gaussian_filter1d(df4['target_target/avg_return'], sigma=5)
+    y41 = smooth(df4['source_source/avg_return'], smoothing)
+    y42 = smooth(df4['source_target/avg_return'], smoothing)
+    y43 = smooth(df4['target_target/avg_return'], smoothing)
 
     axs[1, 1].plot(x4, y41)
     axs[1, 1].plot(x4, y42)
