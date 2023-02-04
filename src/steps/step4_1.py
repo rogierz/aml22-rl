@@ -52,11 +52,11 @@ def main(base_prefix=".", force=False):
 
         total_timesteps = int(250_000)
 
-        env = gym.make(f"CustomHopper-UDR-source-v0")
+        env = gym.make(f"CustomHopper-UDR-source-v1")
         env_source = ResizeObservation(ExtractionWrapper(
-            PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(128, 128))
+            PixelObservationWrapper(gym.make(f"CustomHopper-source-v1"))), shape=(128, 128))
         env_target = ResizeObservation(ExtractionWrapper(
-            PixelObservationWrapper(gym.make(f"CustomHopper-target-v0"))), shape=(128, 128))
+            PixelObservationWrapper(gym.make(f"CustomHopper-target-v1"))), shape=(128, 128))
 
         env = RewardWrapper(
             ResizeObservation(

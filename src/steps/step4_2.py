@@ -46,13 +46,13 @@ def main(base_prefix=".", force=False, variant=None):
                 return
 
         env = FrameStack(GrayScaleObservation(ResizeObservation(ExtractionWrapper(
-            PixelObservationWrapper(gym.make(f"CustomHopper-UDR-source-v0"))), shape=(64, 64))), 3)
+            PixelObservationWrapper(gym.make(f"CustomHopper-UDR-source-v1"))), shape=(64, 64))), 3)
 
         env_source = FrameStack(GrayScaleObservation(ResizeObservation(ExtractionWrapper(
-            PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(64, 64))), 3)
+            PixelObservationWrapper(gym.make(f"CustomHopper-source-v1"))), shape=(64, 64))), 3)
 
         env_target = FrameStack(GrayScaleObservation(ResizeObservation(ExtractionWrapper(
-            PixelObservationWrapper(gym.make(f"CustomHopper-target-v0"))), shape=(64, 64))), 3)
+            PixelObservationWrapper(gym.make(f"CustomHopper-target-v1"))), shape=(64, 64))), 3)
 
         logger = configure(logdir, ["tensorboard"])
 
@@ -113,4 +113,5 @@ def main(base_prefix=".", force=False, variant=None):
 
 main_nature_cnn = partial(main, variant=VariantStep4_2.NATURE_CNN)
 main_custom_cnn = partial(main, variant=VariantStep4_2.CUSTOM_NET)
-main_custom_cnn_pretrained = partial(main, variant=VariantStep4_2.CUSTOM_NET_PRETRAIN)
+main_custom_cnn_pretrained = partial(
+    main, variant=VariantStep4_2.CUSTOM_NET_PRETRAIN)

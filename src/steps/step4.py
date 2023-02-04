@@ -48,19 +48,20 @@ def main(base_prefix=".", force=False, variant=None):
             "batch_size": 128
         }
 
-        total_timesteps = 500_000
+        total_timesteps = 250_000
 
-        training_env_name = "CustomHopper-UDR-source-v0" if variant == VariantStep4.UDR else "CustomHopper-source-v0"
+        training_env_name = "CustomHopper-UDR-source-v1" if variant == VariantStep4.UDR else "CustomHopper-source-v0"
         env = gym.make(training_env_name)
         env_source = ResizeObservation(ExtractionWrapper(
-            PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(128, 128))
+            PixelObservationWrapper(gym.make(f"CustomHopper-source-v1"))), shape=(128, 128))
         env_target = ResizeObservation(ExtractionWrapper(
-            PixelObservationWrapper(gym.make(f"CustomHopper-target-v0"))), shape=(128, 128))
+            PixelObservationWrapper(gym.make(f"CustomHopper-target-v1"))), shape=(128, 128))
 
         env = ResizeObservation(ExtractionWrapper(
             PixelObservationWrapper(env)), shape=(128, 128))
 
-        model = SAC('CnnPolicy', env, **sac_params, seed=42, buffer_size=100000)
+        model = SAC('CnnPolicy', env, **sac_params,
+                    seed=42, buffer_size=100000)
         model.set_logger(logger)
 
         model.learn(total_timesteps=total_timesteps,
@@ -69,7 +70,8 @@ def main(base_prefix=".", force=False, variant=None):
         if os.path.isfile(os.path.join("trained_models", f"step4_{variant.name}.zip")):
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             # print(timestamp)
-            model.save(os.path.join("trained_models", f"step4_{variant.name}_{timestamp}"))
+            model.save(os.path.join("trained_models",
+                       f"step4_{variant.name}_{timestamp}"))
         else:
             model.save(os.path.join("trained_models", f"step4_{variant.name}"))
 
