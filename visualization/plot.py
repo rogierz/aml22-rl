@@ -61,6 +61,7 @@ if __name__ == '__main__':
 
     plotter_name = argv['data_to_plot']
     argv["show"] = bool(argv["show"])
+    # map the smoothing weight to [0, 1)
     argv["smoothing"] -= int(argv["smoothing"])
 
     del argv['data_to_plot']

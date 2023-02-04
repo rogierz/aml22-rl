@@ -23,7 +23,7 @@ def main(input_file, show=True, output_folder=".", fname="plot", smoothing=0.0):
     :param show: Show the plot instead of saving it
     :param output_folder: The folder to which save the plot
     :param fname: The name of the plot file
-    :param smoothing: the smoothing weight to apply to the plots, in the interval [0, 1] = [no-smoothing, max-smoothing]
+    :param smoothing: the smoothing weight to apply to the plots, in the interval [0, 1) = [no-smoothing, max-smoothing)
     """
     df = pd.read_csv(input_file)
 
