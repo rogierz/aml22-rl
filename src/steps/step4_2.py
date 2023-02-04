@@ -15,6 +15,7 @@ from enum import Enum
 
 from ..networks.shufflenet import ShuffleNet
 from ..utils.wrapper import ExtractionWrapper
+from ..utils.lr_schedules import step_schedule
 
 
 class VariantStep4_2(Enum):
@@ -30,9 +31,9 @@ def main(base_prefix=".", force=False, variant=None):
         logdir = f"{base_prefix}/sac_tb_step4_2_{variant.value}_log"
 
         sac_params = {
-            "learning_rate": 2e-3,
+            "learning_rate": step_schedule(2e-3),
             "gamma": 0.99,
-            "batch_size": 16
+            "batch_size": 128 if variant == VariantStep4_2.NATURE_CNN else 16
         }
 
         if os.path.isdir(logdir):
