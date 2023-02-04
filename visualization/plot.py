@@ -35,7 +35,6 @@ def main(p_name, args):
     """
     The main function of this script. It retrieves the correct plotter based on the command line argument and calls it.
 
-
     :param p_name: Determine which plotter to use
     :param args: The arguments dictionary passed by the parser
     """
@@ -56,6 +55,7 @@ if __name__ == '__main__':
 
     parser.print_help()
 
+    # extract arguments as dictionary
     argv = vars(parser.parse_args())
 
     plotter_name = argv['data_to_plot']
@@ -63,15 +63,5 @@ if __name__ == '__main__':
 
     del argv['data_to_plot']
     del argv['file']
-
-    # pprint(argv)
-
-    # parser.print_help()
-    # argv = {'fname': 'plot',
-    #         'input_file': 'data/TPE_data.csv',
-    #         'output_folder': 'plots',
-    #         'show': False}
-    #
-    # plotter_name = "tpe"
 
     main(plotter_name, argv)
