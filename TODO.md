@@ -70,26 +70,26 @@ Mapping NNs have to learn
 
  - Title: Sim-to-Real transfer of Reinforcement Learning policies in robotics
  - Abstract
- - Introduction
+ - Introduction Riccardo
    - What is RL
    - Why is Reinforcement Learning appealing for the robotics field?
    - What is the task given in the Hopper environment?
- - Related Work (other similar projects trying to solve the same tasks in different ways)
+ - Related Work (other similar projects trying to solve the same tasks in different ways) Riccardo
    - What are the challenges of the sim-to-real transfer paradigm?
    - What are the popular strategies for performing an efficient transfer?
- - Background (what is our baseline)
+ - Background (what is our baseline) Ruggero (cfr Introduction)
    - What is the reality gap?
    - What is Uniform Domain Randomization?
    - What is vision-based RL?
    - MuJoCo + Gym
- - Method
+ - Method Ruggero
    - Description of the Hopper environment
    - SAC (+MLP)
    - UDR
    - NatureCnn
-   - ResNet
+   - ResNet / ShuffleNet
    - RewardWrapper
- - Experiments
+ - Experiments Ciccio
    - our practical work 
      - step 2.2
      - step 2.3
@@ -97,11 +97,11 @@ Mapping NNs have to learn
      - step 4.1
      - step 4.2
    - Images + plots
- - Conclusions
+ - Conclusions Ciccio
    - What are the limitations of UDR?
    - Future work (LSTM)
  - References
  - Appendix
-   - Why we would have used it and why we didn't use it
+   - Why we would have used LSTM and why we didn't use it
 
 Estimated: 8-9 pages
