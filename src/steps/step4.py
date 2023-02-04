@@ -17,6 +17,7 @@ from stable_baselines3.common.logger import configure
 
 from model.env.custom_hopper import *
 from ..utils.wrapper import ExtractionWrapper
+from ..utils.lr_schedules import step_schedule
 
 
 class VariantStep4(Enum):
@@ -43,7 +44,7 @@ def main(base_prefix=".", force=False, variant=None):
         logger = configure(logdir, ["tensorboard"])
 
         sac_params = {
-            "learning_rate": 2e-3,
+            "learning_rate": step_schedule(2e-3),
             "gamma": 0.99,
             "batch_size": 128
         }
