@@ -53,9 +53,9 @@ def main(base_prefix=".", force=False, variant=None):
         training_env_name = "CustomHopper-UDR-source-v1" if variant == VariantStep4.UDR else "CustomHopper-source-v0"
         env = gym.make(training_env_name)
         env_source = ResizeObservation(ExtractionWrapper(
-            PixelObservationWrapper(gym.make(f"CustomHopper-source-v1"))), shape=(128, 128))
+            PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(128, 128))
         env_target = ResizeObservation(ExtractionWrapper(
-            PixelObservationWrapper(gym.make(f"CustomHopper-target-v1"))), shape=(128, 128))
+            PixelObservationWrapper(gym.make(f"CustomHopper-target-v0"))), shape=(128, 128))
 
         env = ResizeObservation(ExtractionWrapper(
             PixelObservationWrapper(env)), shape=(128, 128))
