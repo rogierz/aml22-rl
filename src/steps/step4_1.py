@@ -15,6 +15,7 @@ the guidelines and get a feeling of a research-like approach.
 
 The following variant 
 """
+from functools import partial
 import os
 import shutil
 
@@ -26,12 +27,19 @@ from stable_baselines3.common.logger import configure
 from model.env.custom_hopper import *
 from ..utils.wrapper import ExtractionWrapper, RewardWrapper, RewardWrapperMode
 from ..utils.lr_schedules import step_schedule
+from enum import Enum
 
 
-def main(base_prefix=".", force=False):
+class NetworkVariant(Enum):
+    CNN = 0
+    MLP = 1
+
+
+def main(base_prefix=".", force=False, network=NetworkVariant.CNN):
+    print(f"Using network type: {network.name}")
     for variant in [RewardWrapperMode.MINIMIZE, RewardWrapperMode.MAXIMIZE]:
         print(f"Executing variant {variant.name}:\n")
-        logdir = f"{base_prefix}/sac_tb_step4_1_{variant.value}_log"
+        logdir = f"{base_prefix}/sac_tb_step4_1_{variant.value}_{network.name}_log"
 
         if os.path.isdir(logdir):
             if force:
@@ -54,26 +62,33 @@ def main(base_prefix=".", force=False):
         total_timesteps = int(250_000)
 
         env = gym.make(f"CustomHopper-UDR-source-v1")
-        env_source = ResizeObservation(ExtractionWrapper(
-            PixelObservationWrapper(gym.make(f"CustomHopper-source-v0"))), shape=(128, 128))
-        env_target = ResizeObservation(ExtractionWrapper(
-            PixelObservationWrapper(gym.make(f"CustomHopper-target-v0"))), shape=(128, 128))
+        env_source = gym.make(f"CustomHopper-source-v0")
+        env_target = gym.make(f"CustomHopper-target-v0")
+        if network == NetworkVariant.CNN:
+            env_source = ResizeObservation(ExtractionWrapper(
+                PixelObservationWrapper(env_source)), shape=(128, 128))
+            env_target = ResizeObservation(ExtractionWrapper(
+                PixelObservationWrapper(env_target)), shape=(128, 128))
+            env = ResizeObservation(ExtractionWrapper(
+                PixelObservationWrapper(env)), shape=(128, 128))
 
-        env = RewardWrapper(
-            ResizeObservation(
-                ExtractionWrapper(
-                    PixelObservationWrapper(env)),
-                shape=(128, 128)), variant,
-            target=(None if variant == RewardWrapperMode.MAXIMIZE else env_target))
+        env = RewardWrapper(env, variant,
+                            target=(None if variant == RewardWrapperMode.MAXIMIZE else env_target))
 
-        model = SAC('CnnPolicy', env, **sac_params,
-                    seed=42, buffer_size=100000)
+        if network == NetworkVariant.CNN:
+            model = SAC('CnnPolicy', env, **sac_params,
+                        seed=42, buffer_size=100000)
+        else:
+            model = SAC('MlpPolicy', env, **sac_params,
+                        seed=42)
+
         model.set_logger(logger)
 
         model.learn(total_timesteps=total_timesteps,
                     progress_bar=True, tb_log_name="SAC_training_CNN")
 
-        model.save(os.path.join("trained_models", f"step4_1_{variant.value}"))
+        model.save(os.path.join("trained_models",
+                   f"step4_1_{variant.value}_{network.name}"))
 
         n_episodes = 50
 
@@ -101,3 +116,6 @@ def main(base_prefix=".", force=False):
 
 if __name__ == '__main__':
     main()
+
+
+main_mlp = partial(main, network=NetworkVariant.MLP)
