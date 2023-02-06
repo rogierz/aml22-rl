@@ -25,7 +25,7 @@ class VariantStep4(Enum):
     NO_UDR = 2
 
 
-def main(base_prefix=".", force=False, variant=None):
+def main(base_prefix=".", force=False, test=False, variant=None):
     variant_to_do = [variant] if variant is not None else list(VariantStep4)
     for variant in variant_to_do:
         print(f"Running variant {variant.name}...")
@@ -61,20 +61,24 @@ def main(base_prefix=".", force=False, variant=None):
         env = ResizeObservation(ExtractionWrapper(
             PixelObservationWrapper(env)), shape=(128, 128))
 
-        model = SAC('CnnPolicy', env, **sac_params,
-                    seed=42, buffer_size=100000)
-        model.set_logger(logger)
-
-        model.learn(total_timesteps=total_timesteps,
-                    progress_bar=True, tb_log_name="SAC_training_CNN")
-
-        if os.path.isfile(os.path.join("trained_models", f"step4_{variant.name}.zip")):
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            # print(timestamp)
-            model.save(os.path.join("trained_models",
-                       f"step4_{variant.name}_{timestamp}"))
+        if test:
+            model = SAC.load(os.path.join("trained_models", f"step4_{variant.name}"), env=env)
+            model.set_logger(logger)
         else:
-            model.save(os.path.join("trained_models", f"step4_{variant.name}"))
+            model = SAC('CnnPolicy', env, **sac_params,
+                        seed=42, buffer_size=100000)
+            model.set_logger(logger)
+
+            model.learn(total_timesteps=total_timesteps,
+                        progress_bar=True, tb_log_name="SAC_training_CNN")
+
+            if os.path.isfile(os.path.join("trained_models", f"step4_{variant.name}.zip")):
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                # print(timestamp)
+                model.save(os.path.join("trained_models",
+                           f"step4_{variant.name}_{timestamp}"))
+            else:
+                model.save(os.path.join("trained_models", f"step4_{variant.name}"))
 
         n_episodes = 50
 
