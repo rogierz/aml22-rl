@@ -9,6 +9,7 @@ from gym.wrappers import FrameStack, GrayScaleObservation, ResizeObservation
 from gym.wrappers.pixel_observation import PixelObservationWrapper
 from stable_baselines3 import SAC
 from stable_baselines3.common.logger import configure
+from tqdm import tqdm
 
 from model.env.custom_hopper import *
 from src.utils.wrapper import ExtractionWrapper
@@ -34,7 +35,8 @@ def main(base_prefix=".", force=False, models_dir="trained_models"):
             test_env = FrameStack(GrayScaleObservation(ResizeObservation(ExtractionWrapper(
                 PixelObservationWrapper(gym.make('CustomHopper-target-v0'))), shape=(64, 64))), 3)
 
-        model = SAC.load(os.path.join("models_dir", f"step4_1_{reward_variant.value}_{arch_variant.name}.zip"))
+        model = SAC.load(os.path.join(models_dir, f"step4_1_{reward_variant.value}_{arch_variant.name}.zip"),
+                         env=test_env)
 
         logdir = f"{base_prefix}/test_{reward_variant.name}_{arch_variant.name}_log"
         logger = configure(logdir, ["tensorboard"])
@@ -42,7 +44,8 @@ def main(base_prefix=".", force=False, models_dir="trained_models"):
 
         n_episodes = 1000
         run_avg_return = 0
-        for ep in range(n_episodes):
+        run_avg_length = 0
+        for ep in tqdm(range(n_episodes)):
             done = False
             state = test_env.reset()
             episode_return = 0
@@ -60,10 +63,13 @@ def main(base_prefix=".", force=False, models_dir="trained_models"):
             logger.record(f'episode_length', episode_length)
             logger.dump(ep)
             run_avg_return += episode_return
+            run_avg_length += episode_length
         run_avg_return /= n_episodes
+        run_avg_length /= n_episodes
         logger.record(f'run_avg_return', run_avg_return)
+        logger.record(f'run_avg_length', run_avg_length)
         logger.dump()
 
 
 if __name__ == '__main__':
-    main()
+    main(base_prefix="logs")
