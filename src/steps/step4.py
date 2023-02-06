@@ -62,7 +62,7 @@ def main(base_prefix=".", force=False, test=False, variant=None):
             PixelObservationWrapper(env)), shape=(128, 128))
 
         if test:
-            model = SAC.load(os.path.join("trained_models", f"step4_{variant.name}"), env=env)
+            model = SAC.load(os.path.join("trained_models", f"step4_{variant.name}"))
             model.set_logger(logger)
         else:
             model = SAC('CnnPolicy', env, **sac_params,
@@ -91,7 +91,7 @@ def main(base_prefix=".", force=False, test=False, variant=None):
                 episode_return = 0
 
                 while not done:  # Until the episode is over
-                    action, _ = model.predict(obs, deterministic=True)
+                    action, _ = model.predict(obs)
                     obs, reward, done, info = test_env.step(action)
                     n_steps += 1
                     episode_return += reward

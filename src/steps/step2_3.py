@@ -89,7 +89,7 @@ def objective_fn(trial, logdir='.'):
             episode_return = 0
 
             while not done:  # Until the episode is over
-                action, _ = model.predict(obs, deterministic=True)
+                action, _ = model.predict(obs)
                 obs, reward, done, info = env_target.step(action)
                 n_steps += 1
                 episode_return += reward

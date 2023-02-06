@@ -47,7 +47,7 @@ def main(base_prefix='.', force=False):
         obs = vec_env.reset()
 
         while not done:  # Until the episode is over
-            action, _ = model.predict(obs, deterministic=True)
+            action, _ = model.predict(obs)
             obs, reward, done, info = vec_env.step(action)
 
 

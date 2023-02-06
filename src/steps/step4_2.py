@@ -98,7 +98,7 @@ def main(base_prefix=".", force=False, variant=None):
 
                 while not done:  # Until the episode is over
 
-                    action, _ = model.predict(obs, deterministic=True)
+                    action, _ = model.predict(obs)
                     obs, reward, done, info = test_env.step(action)
                     obs = np.array(obs)
                     n_steps += 1

@@ -66,7 +66,7 @@ def main(base_prefix=".", force=False, models_dir="trained_models"):
                 while not done:  # Until the episode is over
                     # if arch_variant == ArchVariant.CNN:
                     #     state = np.array(state)
-                    action, _ = model.predict(state, deterministic=True)
+                    action, _ = model.predict(state)
 
                     state, reward, done, info = test_env.step(action)  # Step the simulator to the next timestep
                     episode_return += reward
