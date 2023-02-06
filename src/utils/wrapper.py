@@ -13,6 +13,7 @@ class ExtractionWrapper(gym.ObservationWrapper):
     """
     This class extracts the output from the PixelObservationWrapper and adapts it for the ResizeObservationWrapper
     """
+
     def __init__(self, env):
         super().__init__(env)
         self.observation_space = Box(
@@ -44,6 +45,7 @@ class RewardWrapper(gym.RewardWrapper):
     """
     This class is a wrapper used to increase or decrease the rewards based on the values of :param mode
     """
+
     def __init__(self, env, mode=RewardWrapperMode.MAXIMIZE, target=None):
         super().__init__(env)
         if mode not in list(RewardWrapperMode):
@@ -52,7 +54,7 @@ class RewardWrapper(gym.RewardWrapper):
             raise ValueError("Impossible to minimize if target is None")
         self.env = env
         self.mode = mode
-        self.target = env if target is None else target
+        self.target = target
 
     def reward(self, reward):
         """
@@ -67,7 +69,8 @@ class RewardWrapper(gym.RewardWrapper):
         source_masses = self.env.sim.model.body_mass[1:]
 
         # cosine similarity
-        similarity = (source_masses.T @ target_masses) / (np.linalg.norm(source_masses) * np.linalg.norm(target_masses))
+        similarity = (source_masses.T @ target_masses) / \
+            (np.linalg.norm(source_masses) * np.linalg.norm(target_masses))
         if self.mode == RewardWrapperMode.MAXIMIZE:
             # bonus if masses very different
             coeff += (1 - similarity)

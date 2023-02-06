@@ -73,7 +73,7 @@ def main(base_prefix=".", force=False, network=NetworkVariant.CNN):
                 PixelObservationWrapper(env)), shape=(128, 128))
 
         env = RewardWrapper(env, variant,
-                            target=(None if variant == RewardWrapperMode.MAXIMIZE else env_target))
+                            target=env_target)
 
         if network == NetworkVariant.CNN:
             model = SAC('CnnPolicy', env, **sac_params,
