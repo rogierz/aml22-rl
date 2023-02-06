@@ -74,7 +74,7 @@ def objective_fn(trial, logdir='.', test=False):
                 model = SAC('MlpPolicy', env_source, learning_rate=lr_schedule(
                     lr), batch_size=batch_size, gamma=gamma)
                 model.set_logger(logger)
-                model.learn(total_timesteps=100_000, progress_bar=True)
+                model.learn(total_timesteps=250_000, progress_bar=True)
 
                 model.save(os.path.join("trained_models",
                                         f"step2_3_trial_{trial.number}_env_{source}"))
@@ -140,8 +140,8 @@ def main(base_prefix='.', force=False, test=False):
 
     search_space = {
         "gamma": [0.99],
-        "learning_rate": [1e-3, 2e-3, 5e-3],
-        "batch_size": [128, 256, 512],
+        "learning_rate": [1e-3, 2e-3],
+        "batch_size": [128, 256],
         "lr_schedule": ["constant", "step"]
     }
 

@@ -75,13 +75,15 @@ def objective_fn(trial, logdir='.', variant=None, test=False):
         model = SAC('MlpPolicy', env_source_UDR, learning_rate=lr_schedule(
             lr), batch_size=batch_size, gamma=gamma, verbose=1)
         model.set_logger(logger)
-        model.learn(total_timesteps=int(1e5), progress_bar=True,
+        model.learn(total_timesteps=250_000, progress_bar=True,
                     tb_log_name=f"SAC_training_UDR")
 
-        model.save(os.path.join("trained_models", f"step3_{variant.value}_trial_{trial.number}"))
+        model.save(os.path.join("trained_models",
+                   f"step3_{variant.value}_trial_{trial.number}"))
     else:
         print("Loading model...")
-        model = SAC.load(os.path.join("trained_models", f"3v{variant.value-1}", f"step3v{variant.value-1}_trial_{trial.number}"))
+        model = SAC.load(os.path.join(
+            "trained_models", f"3v{variant.value-1}", f"step3v{variant.value-1}_trial_{trial.number}"))
         model.set_logger(logger)
 
     n_episodes = 50
