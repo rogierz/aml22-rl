@@ -85,6 +85,7 @@ def main(base_prefix=".", force=False, variant=None, test=False):
                 model.save(os.path.join("trained_models",
                                         f"step4_2_{variant.name}"))
         else:
+            print("Loading model...")
             model = SAC.load(os.path.join("trained_models", "4_2v1",
                                           f"step4_2_{variant.name}"), env_target=env_target)
             model.set_logger(logger)

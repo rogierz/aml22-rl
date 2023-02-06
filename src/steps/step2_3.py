@@ -81,6 +81,7 @@ def objective_fn(trial, logdir='.', test=False):
 
                 last_trained_env = source
         else:
+            print("Loading model...")
             model = SAC.load(os.path.join("trained_models", "2_3",
                                           f"step2_3_trial_{trial.number}_env_{source}"))
             model.set_logger(logger)

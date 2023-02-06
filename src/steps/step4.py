@@ -62,6 +62,7 @@ def main(base_prefix=".", force=False, test=False, variant=None):
             PixelObservationWrapper(env)), shape=(128, 128))
 
         if test:
+            print("Loading model...")
             model = SAC.load(os.path.join("trained_models", f"step4_{variant.name}"))
             model.set_logger(logger)
         else:

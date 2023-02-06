@@ -67,7 +67,7 @@ def objective_fn(trial, logdir='.', variant=None, test=False):
     logger = configure(f"{logdir}/trial_{trial.number}", ["tensorboard"])
     metric = 0
     params_metric = {}
-    env_source_UDR = gym.make(f"CustomHopper-UDR-source-v{variant.value}")
+    env_source_UDR = gym.make(f"CustomHopper-UDR-source-v{variant.value-1}")
     env_source = gym.make(f"CustomHopper-source-v0")
     env_target = gym.make(f"CustomHopper-target-v0")
 
@@ -80,7 +80,8 @@ def objective_fn(trial, logdir='.', variant=None, test=False):
 
         model.save(os.path.join("trained_models", f"step3_{variant.value}_trial_{trial.number}"))
     else:
-        model = SAC.load(os.path.join("trained_models", f"3v{variant.value}", f"step3v{variant.value}_trial_{trial.number}"))
+        print("Loading model...")
+        model = SAC.load(os.path.join("trained_models", f"3v{variant.value-1}", f"step3v{variant.value-1}_trial_{trial.number}"))
         model.set_logger(logger)
 
     n_episodes = 50

@@ -91,6 +91,7 @@ def main(base_prefix=".", force=False, network=NetworkVariant.CNN, test=False):
             model.save(os.path.join("trained_models",
                                     f"step4_1_{variant.value}_{network.name}"))
         else:
+            print("Loading model...")
             model = SAC.load(os.path.join("trained_models", "4_1",
                                           f"step4_1_{variant.value}_{network.name}"))
             model.set_logger(logger)
