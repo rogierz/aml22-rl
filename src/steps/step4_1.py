@@ -35,7 +35,7 @@ class NetworkVariant(Enum):
     MLP = 1
 
 
-def main(base_prefix=".", force=False, network=NetworkVariant.CNN):
+def main(base_prefix=".", force=False, network=NetworkVariant.CNN, test=False):
     print(f"Using network type: {network.name}")
     for variant in [RewardWrapperMode.MINIMIZE, RewardWrapperMode.MAXIMIZE]:
         print(f"Executing variant {variant.name}:\n")
@@ -64,6 +64,7 @@ def main(base_prefix=".", force=False, network=NetworkVariant.CNN):
         env = gym.make(f"CustomHopper-UDR-source-v1")
         env_source = gym.make(f"CustomHopper-source-v0")
         env_target = gym.make(f"CustomHopper-target-v0")
+
         if network == NetworkVariant.CNN:
             env_source = ResizeObservation(ExtractionWrapper(
                 PixelObservationWrapper(env_source)), shape=(128, 128))
@@ -74,21 +75,25 @@ def main(base_prefix=".", force=False, network=NetworkVariant.CNN):
 
         env = RewardWrapper(env, variant,
                             target=env_target)
+        if test:
+            if network == NetworkVariant.CNN:
+                model = SAC('CnnPolicy', env, **sac_params,
+                            seed=42, buffer_size=100000)
+            else:
+                model = SAC('MlpPolicy', env, **sac_params,
+                            seed=42)
+        
+            model.set_logger(logger)
 
-        if network == NetworkVariant.CNN:
-            model = SAC('CnnPolicy', env, **sac_params,
-                        seed=42, buffer_size=100000)
+            model.learn(total_timesteps=total_timesteps,
+                        progress_bar=True, tb_log_name="SAC_training_CNN")
+
+            model.save(os.path.join("trained_models",
+                    f"step4_1_{variant.value}_{network.name}"))
         else:
-            model = SAC('MlpPolicy', env, **sac_params,
-                        seed=42)
-
-        model.set_logger(logger)
-
-        model.learn(total_timesteps=total_timesteps,
-                    progress_bar=True, tb_log_name="SAC_training_CNN")
-
-        model.save(os.path.join("trained_models",
-                   f"step4_1_{variant.value}_{network.name}"))
+            model.load(os.path.join("trained_models",
+                    f"step4_1_{variant.value}_{network.name}"))
+            model.set_logger(logger)
 
         n_episodes = 50
 

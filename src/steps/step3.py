@@ -46,7 +46,7 @@ def sample_sac_params(trial):
     }
 
 
-def objective_fn(trial, logdir='.', variant=None):
+def objective_fn(trial, logdir='.', variant=None, test=False):
     """
     The objective_fn function is the objective function that optuna optimizes.
     It takes a trial object as an argument and returns the value of the objective function calculated with the sampled
@@ -71,15 +71,20 @@ def objective_fn(trial, logdir='.', variant=None):
     env_source = gym.make(f"CustomHopper-source-v0")
     env_target = gym.make(f"CustomHopper-target-v0")
 
-    model = SAC('MlpPolicy', env_source_UDR, learning_rate=lr_schedule(
-        lr), batch_size=batch_size, gamma=gamma, verbose=1)
-    model.set_logger(logger)
-    model.learn(total_timesteps=int(1e5), progress_bar=True,
-                tb_log_name=f"SAC_training_UDR")
+    if test:
+        model = SAC('MlpPolicy', env_source_UDR, learning_rate=lr_schedule(
+            lr), batch_size=batch_size, gamma=gamma, verbose=1)
+        model.set_logger(logger)
+        model.learn(total_timesteps=int(1e5), progress_bar=True,
+                    tb_log_name=f"SAC_training_UDR")
 
-    model.save(os.path.join("trained_models", f"step3_{variant.value}_trial_{trial.number}"))
+        model.save(os.path.join("trained_models", f"step3_{variant.value}_trial_{trial.number}"))
+    else:
+        model.load(os.path.join("trained_models", f"step3_{variant.value}_trial_{trial.number}"), env_target=env_target)
+        model.set_logger(logger)
 
     n_episodes = 50
+       
 
     for env_name, test_env in [("source", env_source), ("target", env_target)]:
         run_avg_return = 0
@@ -114,7 +119,7 @@ def objective_fn(trial, logdir='.', variant=None):
     return metric
 
 
-def main(base_prefix='.', force=False, variant=None):
+def main(base_prefix='.', force=False, variant=None, test=False):
     """
     This function runs the ablation study through the optuna APIs.
 

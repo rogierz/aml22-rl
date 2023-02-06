@@ -39,7 +39,7 @@ def sample_sac_params(trial):
     }
 
 
-def objective_fn(trial, logdir='.'):
+def objective_fn(trial, logdir='.', test=False):
     """
     The objective_fn function is the objective function that optuna optimizes.
     It takes a trial object as an argument and returns the value of the objective function calculated with the sampled
@@ -66,19 +66,24 @@ def objective_fn(trial, logdir='.'):
                            ["tensorboard"])
         env_source = gym.make(f"CustomHopper-{source}-v0")
         env_target = gym.make(f"CustomHopper-{target}-v0")
+        
+        if not test:
+            # We only want to train in source and target once for each env
+            if last_trained_env != source:
+                # if we aren't in ('source', 'target') we retrain on target env
+                model = SAC('MlpPolicy', env_source, learning_rate=lr_schedule(
+                    lr), batch_size=batch_size, gamma=gamma)
+                model.set_logger(logger)
+                model.learn(total_timesteps=100_000, progress_bar=True)
 
-        # We only want to train in source and target once for each env
-        if last_trained_env != source:
-            # if we aren't in ('source', 'target') we retrain on target env
-            model = SAC('MlpPolicy', env_source, learning_rate=lr_schedule(
-                lr), batch_size=batch_size, gamma=gamma)
+                model.save(os.path.join("trained_models",
+                                        f"step2_3_trial_{trial.number}_env_{source}"))
+
+                last_trained_env = source
+        else:
+            model.load(os.path.join("trained_models",
+                                        f"step2_3_trial_{trial.number}_env_{source}"))
             model.set_logger(logger)
-            model.learn(total_timesteps=100_000, progress_bar=True)
-
-            model.save(os.path.join("trained_models",
-                                    f"step2_3_trial_{trial.number}_env_{source}"))
-
-            last_trained_env = source
 
         n_episodes = 50
         run_avg_return = 0
@@ -113,7 +118,7 @@ def objective_fn(trial, logdir='.'):
     return src_trg_avg_return
 
 
-def main(base_prefix='.', force=False):
+def main(base_prefix='.', force=False, test=False):
     """
     This function runs the ablation study through the optuna APIs.
 
@@ -142,7 +147,7 @@ def main(base_prefix='.', force=False):
     study = optuna.create_study(
         sampler=optuna.samplers.GridSampler(search_space), direction="maximize", study_name="Our awesome study")
 
-    objective = partial(objective_fn, logdir=logdir)
+    objective = partial(objective_fn, logdir=logdir, test=test)
     study.optimize(objective)
 
 
