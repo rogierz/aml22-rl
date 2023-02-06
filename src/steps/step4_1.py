@@ -75,7 +75,7 @@ def main(base_prefix=".", force=False, network=NetworkVariant.CNN, test=False):
 
         env = RewardWrapper(env, variant,
                             target=env_target)
-        if test:
+        if not test:
             if network == NetworkVariant.CNN:
                 model = SAC('CnnPolicy', env, **sac_params,
                             seed=42, buffer_size=100000)
@@ -96,8 +96,8 @@ def main(base_prefix=".", force=False, network=NetworkVariant.CNN, test=False):
                                           f"step4_1_{variant.value}_{network.name}"))
             model.set_logger(logger)
 
+        print("Testing...")
         n_episodes = 50
-
         for env_name, test_env in [("source", env_source), ("target", env_target)]:
             run_avg_return = 0
             for ep in range(n_episodes):

@@ -57,7 +57,7 @@ def main(base_prefix=".", force=False, variant=None, test=False):
 
         logger = configure(logdir, ["tensorboard"])
 
-        if test:
+        if not test:
             if variant == VariantStep4_2.NATURE_CNN:
                 model = SAC("CnnPolicy", env, **sac_params,
                             seed=42, buffer_size=10000)

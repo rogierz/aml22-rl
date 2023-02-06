@@ -63,7 +63,7 @@ def main(base_prefix=".", force=False, test=False, variant=None):
 
         if test:
             print("Loading model...")
-            model = SAC.load(os.path.join("trained_models", f"step4_{variant.name}"))
+            model = SAC.load(os.path.join("trained_models", "4", f"step4_{variant.name}"))
             model.set_logger(logger)
         else:
             model = SAC('CnnPolicy', env, **sac_params,
