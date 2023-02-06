@@ -66,7 +66,7 @@ def objective_fn(trial, logdir='.', test=False):
                            ["tensorboard"])
         env_source = gym.make(f"CustomHopper-{source}-v0")
         env_target = gym.make(f"CustomHopper-{target}-v0")
-        
+
         if not test:
             # We only want to train in source and target once for each env
             if last_trained_env != source:
@@ -81,8 +81,8 @@ def objective_fn(trial, logdir='.', test=False):
 
                 last_trained_env = source
         else:
-            model.load(os.path.join("trained_models",
-                                        f"step2_3_trial_{trial.number}_env_{source}"))
+            model = SAC.load(os.path.join("trained_models", "2_3",
+                                          f"step2_3_trial_{trial.number}_env_{source}"))
             model.set_logger(logger)
 
         n_episodes = 50

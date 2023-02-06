@@ -80,11 +80,10 @@ def objective_fn(trial, logdir='.', variant=None, test=False):
 
         model.save(os.path.join("trained_models", f"step3_{variant.value}_trial_{trial.number}"))
     else:
-        model.load(os.path.join("trained_models", f"step3_{variant.value}_trial_{trial.number}"), env_target=env_target)
+        model = SAC.load(os.path.join("trained_models", f"3v{variant.value}", f"step3v{variant.value}_trial_{trial.number}"))
         model.set_logger(logger)
 
     n_episodes = 50
-       
 
     for env_name, test_env in [("source", env_source), ("target", env_target)]:
         run_avg_return = 0

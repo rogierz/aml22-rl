@@ -82,17 +82,17 @@ def main(base_prefix=".", force=False, network=NetworkVariant.CNN, test=False):
             else:
                 model = SAC('MlpPolicy', env, **sac_params,
                             seed=42)
-        
+
             model.set_logger(logger)
 
             model.learn(total_timesteps=total_timesteps,
                         progress_bar=True, tb_log_name="SAC_training_CNN")
 
             model.save(os.path.join("trained_models",
-                    f"step4_1_{variant.value}_{network.name}"))
+                                    f"step4_1_{variant.value}_{network.name}"))
         else:
-            model.load(os.path.join("trained_models",
-                    f"step4_1_{variant.value}_{network.name}"))
+            model = SAC.load(os.path.join("trained_models", "4_1",
+                                          f"step4_1_{variant.value}_{network.name}"))
             model.set_logger(logger)
 
         n_episodes = 50
@@ -121,6 +121,5 @@ def main(base_prefix=".", force=False, network=NetworkVariant.CNN, test=False):
 
 if __name__ == '__main__':
     main()
-
 
 main_mlp = partial(main, network=NetworkVariant.MLP)

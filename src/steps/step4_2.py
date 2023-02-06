@@ -56,7 +56,7 @@ def main(base_prefix=".", force=False, variant=None, test=False):
             PixelObservationWrapper(gym.make(f"CustomHopper-target-v0"))), shape=(64, 64))), 3)
 
         logger = configure(logdir, ["tensorboard"])
-        
+
         if test:
             if variant == VariantStep4_2.NATURE_CNN:
                 model = SAC("CnnPolicy", env, **sac_params,
@@ -76,22 +76,21 @@ def main(base_prefix=".", force=False, variant=None, test=False):
 
             model.learn(total_timesteps=250_000, progress_bar=True,
                         tb_log_name=f"SAC_training_frameStack_{variant.name}")
- 
 
             if os.path.isfile(os.path.join("trained_models", f"step4_2_{variant.name}.zip")):
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 model.save(os.path.join("trained_models",
-                        f"step4_2_{variant.name}_{timestamp}"))
+                                        f"step4_2_{variant.name}_{timestamp}"))
             else:
                 model.save(os.path.join("trained_models",
-                        f"step4_2_{variant.name}"))
+                                        f"step4_2_{variant.name}"))
         else:
-            model.load(os.path.join("trained_models",
-                        f"step4_2_{variant.name}"), env_target=env_target)
+            model = SAC.load(os.path.join("trained_models", "4_2v1",
+                                          f"step4_2_{variant.name}"), env_target=env_target)
             model.set_logger(logger)
 
         n_episodes = 50
-        
+
         for env_name, test_env in [("source", env_source), ("target", env_target)]:
             print(f"Testing on {env_name}")
             run_avg_return = 0
