@@ -71,7 +71,7 @@ def objective_fn(trial, logdir='.', variant=None, test=False):
     env_source = gym.make(f"CustomHopper-source-v0")
     env_target = gym.make(f"CustomHopper-target-v0")
 
-    if test:
+    if not test:
         model = SAC('MlpPolicy', env_source_UDR, learning_rate=lr_schedule(
             lr), batch_size=batch_size, gamma=gamma, verbose=1)
         model.set_logger(logger)
