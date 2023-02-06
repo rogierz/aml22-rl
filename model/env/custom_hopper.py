@@ -56,9 +56,9 @@ class CustomHopper(MujocoEnv, utils.EzPickle):
                     foot_mass - offset if (foot_mass - offset) > 0 else 0.1 * foot_mass,
                     foot_mass + offset)}
         elif self.randomize == "test":
-            self.sim.model.body_mass[BODY_PARTS['thigh']] += np.random.normal(0, 1)
-            self.sim.model.body_mass[BODY_PARTS['leg']] += np.random.normal(0, 1)
-            self.sim.model.body_mass[BODY_PARTS['foot']] += np.random.normal(0, 1)
+            self.sim.model.body_mass[BODY_PARTS['thigh']] *= (1+offset)
+            self.sim.model.body_mass[BODY_PARTS['leg']] *= (1+offset)
+            self.sim.model.body_mass[BODY_PARTS['foot']] *= (1+offset)
 
     def set_random_parameters(self):
         """Set random masses
@@ -104,7 +104,7 @@ class CustomHopper(MujocoEnv, utils.EzPickle):
         done = not (np.isfinite(s).all() and (np.abs(s[2:]) < 100).all() and (height > .7) and (abs(ang) < .2))
         ob = self._get_obs()
 
-        if self.randomize and done:
+        if self.randomize and self.randomize != "test" and done:
             self.n_episodes += 1
             self.set_random_parameters()
 
@@ -187,5 +187,6 @@ gym.envs.register(
     entry_point="%s:CustomHopper" % __name__,
     max_episode_steps=500,
     kwargs={"domain": "target",
-            "randomize": "test"}
+            "randomize": "test",
+            "offset": 0}
 )

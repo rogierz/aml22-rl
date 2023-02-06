@@ -38,48 +38,49 @@ def main(base_prefix=".", force=False, models_dir="trained_models"):
             print(f"Directory {out_dir} already exists. Shutting down...")
             return
     reward_wrapper_variants = list(RewardWrapperMode)
-    arch_variants = reversed(list(ArchVariant))
-    for arch_variant, reward_variant in product(arch_variants, reward_wrapper_variants):
-        if arch_variant == ArchVariant.MLP:
-            test_env = gym.make('CustomHopper-target-v0')
-        else:
-            test_env = ResizeObservation(ExtractionWrapper(
-                PixelObservationWrapper(gym.make('CustomHopper-target-v0'))), shape=(128, 128))
+    arch_variants = list(ArchVariant)
+    for i, off in enumerate([-0.5, -0.25, 0, 0.25, 0.5]):
+        for arch_variant, reward_variant in product(arch_variants, reward_wrapper_variants):
+            if arch_variant == ArchVariant.MLP:
+                test_env = gym.make('CustomHopper-target-v1', offset=off)
+            else:
+                test_env = ResizeObservation(ExtractionWrapper(
+                    PixelObservationWrapper(gym.make('CustomHopper-target-v0', offset=off))), shape=(128, 128))
 
-        model = SAC.load(os.path.join(models_dir, f"step4_1_{reward_variant.value}_{arch_variant.name}.zip"),
-                         env=test_env)
+            model = SAC.load(os.path.join(models_dir, f"step4_1_{reward_variant.value}_{arch_variant.name}.zip"),
+                             env=test_env)
 
-        logdir = f"{base_prefix}/test/test_{reward_variant.name}_{arch_variant.name}_log"
-        logger = configure(logdir, ["tensorboard"])
-        model.set_logger(logger)
+            logdir = f"{base_prefix}/test/{i}/test_{reward_variant.name}_{arch_variant.name}_log"
+            logger = configure(logdir, ["tensorboard"])
+            model.set_logger(logger)
 
-        n_episodes = 1000
-        run_avg_return = 0
-        run_avg_length = 0
-        for ep in tqdm(range(n_episodes)):
-            done = False
-            state = test_env.reset()
-            episode_return = 0
-            episode_length = 0
+            n_episodes = 50
+            run_avg_return = 0
+            run_avg_length = 0
+            for ep in tqdm(range(n_episodes)):
+                done = False
+                state = test_env.reset()
+                episode_return = 0
+                episode_length = 0
 
-            while not done:  # Until the episode is over
-                # if arch_variant == ArchVariant.CNN:
-                #     state = np.array(state)
-                action, _ = model.predict(state, deterministic=True)
+                while not done:  # Until the episode is over
+                    # if arch_variant == ArchVariant.CNN:
+                    #     state = np.array(state)
+                    action, _ = model.predict(state, deterministic=True)
 
-                state, reward, done, info = test_env.step(action)  # Step the simulator to the next timestep
-                episode_return += reward
-                episode_length += 1
-            logger.record(f'episode_return', episode_return)
-            logger.record(f'episode_length', episode_length)
-            logger.dump(ep)
-            run_avg_return += episode_return
-            run_avg_length += episode_length
-        run_avg_return /= n_episodes
-        run_avg_length /= n_episodes
-        logger.record(f'run_avg_return', run_avg_return)
-        logger.record(f'run_avg_length', run_avg_length)
-        logger.dump()
+                    state, reward, done, info = test_env.step(action)  # Step the simulator to the next timestep
+                    episode_return += reward
+                    episode_length += 1
+                logger.record(f'episode_return', episode_return)
+                logger.record(f'episode_length', episode_length)
+                logger.dump(ep)
+                run_avg_return += episode_return
+                run_avg_length += episode_length
+            run_avg_return /= n_episodes
+            run_avg_length /= n_episodes
+            logger.record(f'run_avg_return', run_avg_return)
+            logger.record(f'run_avg_length', run_avg_length)
+            logger.dump()
 
 
 if __name__ == '__main__':
