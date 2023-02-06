@@ -13,3 +13,4 @@ parser.add_argument(
     "-f", "--force", help="Force the execution and overwrite the previous logs", action="count")
 parser.add_argument(
     "-v", help="Which version of current step to run", type=int, default=0)
+parser.add_argument("--test", help="Skip the training phase and load the corresponding saved model", action="count")

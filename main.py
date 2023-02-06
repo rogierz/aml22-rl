@@ -44,6 +44,10 @@ STEPS = {
 if __name__ == '__main__':
     args = parser.parse_args()
     step = STEPS[args.step][args.v]
+    argv = vars(parser.parse_args())
+    del argv['v']
+    del argv['step']
+    argv['test'] = bool(argv['test'])
 
     # execute step
-    step(args.base_prefix, bool(args.force))
+    step(**argv)
