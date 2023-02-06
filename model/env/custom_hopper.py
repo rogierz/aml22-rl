@@ -47,14 +47,18 @@ class CustomHopper(MujocoEnv, utils.EzPickle):
             # UDR-v2
             # OBS: if <some_mass> - offset <= 0, automatically set lower bound of distrib equal to 0.1 * <some_mass>
             self.distributions = {'thigh': Uniform(
-                                        thigh_mass - offset if (thigh_mass - offset) > 0 else 0.1 * thigh_mass,
-                                        thigh_mass + offset),
-                                  'leg': Uniform(
-                                        leg_mass - offset if (leg_mass - offset) > 0 else 0.1 * leg_mass,
-                                        leg_mass + offset),
-                                  'foot': Uniform(
-                                      foot_mass - offset if (foot_mass - offset) > 0 else 0.1 * foot_mass,
-                                      foot_mass + offset)}
+                thigh_mass - offset if (thigh_mass - offset) > 0 else 0.1 * thigh_mass,
+                thigh_mass + offset),
+                'leg': Uniform(
+                    leg_mass - offset if (leg_mass - offset) > 0 else 0.1 * leg_mass,
+                    leg_mass + offset),
+                'foot': Uniform(
+                    foot_mass - offset if (foot_mass - offset) > 0 else 0.1 * foot_mass,
+                    foot_mass + offset)}
+        elif self.randomize == "test":
+            self.sim.model.body_mass[BODY_PARTS['thigh']] += np.random.normal(0, 1)
+            self.sim.model.body_mass[BODY_PARTS['leg']] += np.random.normal(0, 1)
+            self.sim.model.body_mass[BODY_PARTS['foot']] += np.random.normal(0, 1)
 
     def set_random_parameters(self):
         """Set random masses
@@ -176,4 +180,12 @@ gym.envs.register(
     entry_point="%s:CustomHopper" % __name__,
     max_episode_steps=500,
     kwargs={"domain": "target"}
+)
+
+gym.envs.register(
+    id="CustomHopper-target-v1",
+    entry_point="%s:CustomHopper" % __name__,
+    max_episode_steps=500,
+    kwargs={"domain": "target",
+            "randomize": "test"}
 )
