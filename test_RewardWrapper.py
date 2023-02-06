@@ -2,6 +2,7 @@
 
 """
 import os
+import shutil
 from enum import Enum
 from itertools import product
 
@@ -26,14 +27,24 @@ class RewardWrapperMode(Enum):
 
 
 def main(base_prefix=".", force=False, models_dir="trained_models"):
+    out_dir = os.path.join(models_dir, "test")
+    if os.path.isdir(out_dir):
+        if force:
+            try:
+                shutil.rmtree(out_dir)
+            except Exception as e:
+                print(e)
+        else:
+            print(f"Directory {out_dir} already exists. Shutting down...")
+            return
     reward_wrapper_variants = list(RewardWrapperMode)
-    arch_variants = list(ArchVariant)
+    arch_variants = reversed(list(ArchVariant))
     for arch_variant, reward_variant in product(arch_variants, reward_wrapper_variants):
         if arch_variant == ArchVariant.MLP:
             test_env = gym.make('CustomHopper-target-v0')
         else:
-            test_env = FrameStack(GrayScaleObservation(ResizeObservation(ExtractionWrapper(
-                PixelObservationWrapper(gym.make('CustomHopper-target-v0'))), shape=(64, 64))), 3)
+            test_env = ResizeObservation(ExtractionWrapper(
+                PixelObservationWrapper(gym.make('CustomHopper-target-v0'))), shape=(128, 128))
 
         model = SAC.load(os.path.join(models_dir, f"step4_1_{reward_variant.value}_{arch_variant.name}.zip"),
                          env=test_env)
@@ -52,9 +63,9 @@ def main(base_prefix=".", force=False, models_dir="trained_models"):
             episode_length = 0
 
             while not done:  # Until the episode is over
-                if arch_variant == ArchVariant.CNN:
-                    state = np.array(state)
-                action, _ = model.predict(state)
+                # if arch_variant == ArchVariant.CNN:
+                #     state = np.array(state)
+                action, _ = model.predict(state, deterministic=True)
 
                 state, reward, done, info = test_env.step(action)  # Step the simulator to the next timestep
                 episode_return += reward
@@ -72,4 +83,4 @@ def main(base_prefix=".", force=False, models_dir="trained_models"):
 
 
 if __name__ == '__main__':
-    main(base_prefix="logs")
+    main(base_prefix="logs", force=True)
