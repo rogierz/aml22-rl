@@ -5,11 +5,10 @@ import os
 
 def main():
     plt.rcParams.update({'font.size': 8})
-<<<<<<< HEAD
     title_list = ["Masses of target \n reduced by 50% (except torso)",
                   "Masses of target \n reduced by 25% (except torso)", "Masses of target not modified",
                   "Masses of target \n increased by 25%", "Masses of target \n increased by 50%"]
-    for i in range(0, 4):
+    for i in range(0, 5):
         df_step4_1_maximizeCNN = pd.read_csv(
             os.path.join("..", "data", f"step4_1", f"step4_1_{i}_test_MAXIMIZE_CNN_log.csv"))
         df_step4_1_maximizeMLP = pd.read_csv(
@@ -20,15 +19,6 @@ def main():
             os.path.join("..", "data", "step4_1", f"step4_1_{i}_test_MINIMIZE_MLP_log.csv"))
 
         fig, ax = plt.subplots(figsize=(7, 6))
-=======
-    title_list = ["Masses of target \n reduced by 50% (except torso)", "Masses of target \n reduced by 25% (except torso)", "Masses of target \n not modified", "Masses of target \n increased by 25% (except torso)", "Masses of target \n increased by 50% (except torso)"]
-    for i in range(0,5):
-        df_step4_1_maximizeCNN = pd.read_csv(os.path.join("..", "data", f"step4_1", f"step4_1_{i}_test_MAXIMIZE_CNN_log.csv"))
-        df_step4_1_maximizeMLP = pd.read_csv(os.path.join("..", "data", "step4_1", f"step4_1_{i}_test_MAXIMIZE_MLP_log.csv"))
-        df_step4_1_minimizeCNN = pd.read_csv(os.path.join("..", "data", "step4_1", f"step4_1_{i}_test_MINIMIZE_CNN_log.csv"))
-        df_step4_1_minimizeMLP = pd.read_csv(os.path.join("..", "data", "step4_1", f"step4_1_{i}_test_MINIMIZE_MLP_log.csv"))
->>>>>>> 5ab4992a (updated plot step 4.1)
-
         x = df_step4_1_maximizeCNN['Step']
         y1 = df_step4_1_maximizeCNN['Value']
         y2 = df_step4_1_maximizeMLP['Value']
