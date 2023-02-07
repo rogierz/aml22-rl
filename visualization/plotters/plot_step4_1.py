@@ -10,7 +10,7 @@ def main():
     df_step4_1_minimizeCNN = pd.read_csv(os.path.join("..", "data", "step4_1", "step4_1_0_test_MINIMIZE_CNN_log.csv"))
     df_step4_1_minimizeMLP = pd.read_csv(os.path.join("..", "data", "step4_1", "step4_1_0_test_MINIMIZE_MLP_log.csv"))
 
-    fig,ax = plt.subplots(5,1)
+    fig,ax = plt.subplots(5, 1, figsize=(1, 5))
     
     x = df_step4_1_maximizeCNN['Step']
     y1 = df_step4_1_maximizeCNN['Value']
@@ -97,11 +97,12 @@ def main():
     ax[4].set_title("Masses of target \n increased by 50% (except torso)", fontsize=8)
 
 
-    fig.legend(ncol=2, loc='upper center')
-    fig.set_size_inches(4, 12)
+    fig.legend(ncol=1, loc='lower center')
     fig.tight_layout()
-    plt.subplots_adjust(wspace=0.5, hspace=0.5)
+    fig.set_size_inches(3, 15)
+    plt.subplots_adjust(wspace=0.5, hspace=0.5, bottom=0.1, left=0.1)
     fig.savefig(os.path.join("..", "plots", "plot_step4_1.png"), dpi=200)
+
 
 if __name__ == "__main__":
     main()
