@@ -42,3 +42,19 @@ You can also run the code on [Google Colab](https://colab.research.google.com/)
 NOTE 1: rendering is currently **not** officially supported on Colab, making it hard to see the simulator in action. We recommend that each group manages to play around with the visual interface of the simulator at least once, to best understand what is going on with the Hopper environment.
 
 NOTE 2: you need to stay connected to the Google Colab interface at all times for your python scripts to keep training.
+
+### Code structure 
+The core of our project is in the `src` folder, that contains:
+- Some utilities in `utils` folder
+- `networks`: two models used in the step 4.2 as feature extractor.
+- `src`: the implementation of the project steps
+
+### How to run
+The single steps of the project can be run by the root directory with the command `python main.py --step STEP [--logdir] [-f] [-v] [--test]`.
+
+The optional params represents:
+
+- `--logdir BASE_PREFIX`: The directory of log files
+- `-f`, --force : force the execution and overwrite the previous logs
+- `-v V` : Which version of current step to run
+- `--test`: Skip the training phase and load the corresponding saved model
