@@ -7,7 +7,6 @@ def main():
     df_custom = pd.read_csv(os.path.join("..", "data", "step4_2_CUSTOMNET.csv"))
     df_custom_pretrain = pd.read_csv(os.path.join("..", "data", "step4_2_CUSTOMNET_PRETRAIN.csv"))
 
-
     x = df_nature['Step']
     y1 = df_nature['Value']
     y2 = df_custom['Value']
