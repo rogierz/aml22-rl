@@ -10,23 +10,25 @@ def main():
     df_step4_1_minimizeCNN = pd.read_csv(os.path.join("..", "data", "step4_1", "step4_1_0_test_MINIMIZE_CNN_log.csv"))
     df_step4_1_minimizeMLP = pd.read_csv(os.path.join("..", "data", "step4_1", "step4_1_0_test_MINIMIZE_MLP_log.csv"))
 
-    fig,ax = plt.subplots(1, 5, figsize=(5, 1))
+    fig,ax = plt.subplots()
     
     x = df_step4_1_maximizeCNN['Step']
     y1 = df_step4_1_maximizeCNN['Value']
     y2 = df_step4_1_maximizeMLP['Value']
     y3 = df_step4_1_minimizeCNN['Value']
     y4 = df_step4_1_minimizeMLP['Value']
-    ax[0].set_box_aspect(1)
-    ax[0].plot(x, y1, 'r', label="Nature CNN (Maximize)")
-    ax[0].plot(x, y2, 'g', label="MLP (Maximize)")
-    ax[0].plot(x, y3, 'b', label="Nature CNN (Minimize)")
-    ax[0].plot(x, y4, 'y', label="MLP (Minimize)")
-    ax[0].set_xlabel("Episode number", fontsize = 8)
-    ax[0].set_ylabel("Reward",  fontsize = 8)
-    ax[0].set_title("Masses of target \n reduced by 50% (except torso)", fontsize=8)
+    ax.set_box_aspect(1)
+    ax.plot(x, y1, 'r', label="Nature CNN (Maximize)")
+    ax.plot(x, y2, 'g', label="MLP (Maximize)")
+    ax.plot(x, y3, 'b', label="Nature CNN (Minimize)")
+    ax.plot(x, y4, 'y', label="MLP (Minimize)")
+    ax.set_xlabel("Episode number", fontsize = 8)
+    ax.set_ylabel("Reward",  fontsize = 8)
+    ax.set_title("Masses of target \n reduced by 50% (except torso)", fontsize=8)
 
-
+    fig.savefig(os.path.join("..", "plots", "plot_step4_1_0.png"), dpi=200)
+    return 
+    fig,ax = plt.subplots()
     df_step4_1_maximizeCNN = pd.read_csv(os.path.join("..", "data", "step4_1", "step4_1_1_test_MAXIMIZE_CNN_log.csv"))
     df_step4_1_maximizeMLP = pd.read_csv(os.path.join("..", "data", "step4_1", "step4_1_1_test_MAXIMIZE_MLP_log.csv"))
     df_step4_1_minimizeCNN = pd.read_csv(os.path.join("..", "data", "step4_1", "step4_1_1_test_MINIMIZE_CNN_log.csv"))
